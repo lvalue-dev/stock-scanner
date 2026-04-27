@@ -1,0 +1,27 @@
+name: 주식 스캐너
+
+on:
+  schedule:
+    # 평일 오전 9시 ~ 오후 3시, 매 30분마다 (UTC 기준 한국 -9h)
+    - cron: "0,30 0-6 * * 1-5"
+  workflow_dispatch:
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: 패키지 설치
+        run: pip install requests
+
+      - name: 스캔 실행
+        env:
+          KI_APP_KEY: ${{ secrets.KI_APP_KEY }}
+          KI_APP_SECRET: ${{ secrets.KI_APP_SECRET }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: python stock_scanner.py
