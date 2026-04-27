@@ -161,7 +161,7 @@ def fetch_daily_price(token: str, code: str) -> dict:
         params={
             "fid_cond_mrkt_div_code": "J",
             "fid_input_iscd": code,
-            "fid_org_adj_prc": "1",
+            "fid_org_adj_prc": "0",
             "fid_period_div_code": "D",
         },
         headers={
@@ -169,15 +169,21 @@ def fetch_daily_price(token: str, code: str) -> dict:
             "appkey": APP_KEY,
             "appsecret": APP_SECRET,
             "tr_id": "FHKST01010400",
+            "custtype": "P",
         },
-        timeout=10,
+        timeout=15,
     )
     res.raise_for_status()
-    return res.json()
+    data = res.json()
+    rt_cd = data.get("rt_cd", "?")
+    if rt_cd != "0":
+        raise RuntimeError(f"API 오류 [{rt_cd}] {data.get('msg1', '')} / {data.get('msg_cd', '')}")
+    return data
 
 
 def send_discord(stock_code: str, stock_name: str, a: dict) -> None:
     if not DISCORD_URL:
+        print("  ⚠️  DISCORD_WEBHOOK_URL 미설정 — 전송 건너뜀")
         return
     payload = {
         "embeds": [
@@ -194,13 +200,16 @@ def send_discord(stock_code: str, stock_name: str, a: dict) -> None:
             }
         ]
     }
-    requests.post(DISCORD_URL, json=payload, timeout=10)
+    res = requests.post(DISCORD_URL, json=payload, timeout=10)
+    if not res.ok:
+        print(f"  ⚠️  Discord 전송 실패 [{res.status_code}]: {res.text[:200]}")
 
 
 # ── Main ────────────────────────────────────────────────────────────────────
 
 def main() -> None:
     print(f"[{datetime.datetime.now():%Y-%m-%d %H:%M}] 스캔 시작 — {len(STOCKS)}종목")
+    print(f"Discord URL: {'설정됨' if DISCORD_URL else '미설정 (알림 없음)'}")
     token = get_token()
     print("토큰 발급 완료")
 

@@ -361,7 +361,7 @@ export default function StockScanner() {
     const p = new URLSearchParams({
       fid_cond_mrkt_div_code: "J",
       fid_input_iscd: code,
-      fid_org_adj_prc: "1",
+      fid_org_adj_prc: "0",
       fid_period_div_code: "D",
     });
     const res = await fetch(
@@ -372,11 +372,16 @@ export default function StockScanner() {
           appkey: appKey,
           appsecret: appSecret,
           tr_id: "FHKST01010400",
+          custtype: "P",
         },
       }
     );
     if (!res.ok) throw new Error(`조회 HTTP ${res.status}`);
-    return res.json();
+    const data = await res.json();
+    if (data.rt_cd !== "0") {
+      throw new Error(`API [${data.rt_cd}] ${data.msg1 ?? data.msg_cd ?? "오류"}`);
+    }
+    return data;
   };
 
   const startScan = async () => {
