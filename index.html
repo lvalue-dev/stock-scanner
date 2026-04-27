@@ -125,7 +125,7 @@
 
     function analyzeStock(data) {
       const raw = data?.output2;
-      if (!raw || raw.length < 30) return null;
+      if (!raw || raw.length < 15) return null;
       const candles = [...raw].reverse().map(d => ({
         open: parseFloat(d.stck_oprc), close: parseFloat(d.stck_clpr),
         high: parseFloat(d.stck_hgpr), low: parseFloat(d.stck_lwpr),
@@ -135,11 +135,11 @@
       const macdRes = calcMACD(closes);
       const rise3 = check3Rise(candles);
       const signals = [];
-      if (rsi !== null && rsi <= 30) signals.push(`RSI과매도(${rsi.toFixed(1)})`);
+      if (rsi !== null && rsi <= RSI_THRESHOLD) signals.push(`RSI과매도(${rsi.toFixed(1)})`);
       if (macdRes?.goldenCross) signals.push("MACD골든크로스");
       if (rise3) signals.push("3봉상승");
       if (!signals.length) return null;
-      const conf = Math.min(99, signals.length * 25 + (rsi ? Math.max(0, 30 - rsi) : 0));
+      const conf = Math.min(99, signals.length * 25 + (rsi ? Math.max(0, RSI_THRESHOLD - rsi) : 0));
       return { price: closes[closes.length - 1], rsi: rsi?.toFixed(1) ?? "N/A", signals, confidence: conf.toFixed(0) };
     }
 
@@ -222,10 +222,15 @@
         return d.access_token;
       };
 
+      const RSI_THRESHOLD = 40;
+
       const fetchPrice = async (token, code) => {
-        const p = new URLSearchParams({ fid_cond_mrkt_div_code: "J", fid_input_iscd: code, fid_org_adj_prc: "0", fid_period_div_code: "D" });
-        const res = await fetch(`${API_BASE}/uapi/domestic-stock/v1/quotations/inquire-daily-price?${p}`, {
-          headers: { authorization: `Bearer ${token}`, appkey: appKey, appsecret: appSecret, tr_id: "FHKST01010400", custtype: "P" },
+        const today = new Date(), start = new Date(today);
+        start.setDate(start.getDate() - 180);
+        const fmt = d => d.toISOString().slice(0,10).replace(/-/g,"");
+        const p = new URLSearchParams({ fid_cond_mrkt_div_code:"J", fid_input_iscd:code, fid_input_date_1:fmt(start), fid_input_date_2:fmt(today), fid_period_div_code:"D", fid_org_adj_prc:"0" });
+        const res = await fetch(`${API_BASE}/uapi/domestic-stock/v1/quotations/inquire-daily-itemchartprice?${p}`, {
+          headers: { authorization:`Bearer ${token}`, appkey:appKey, appsecret:appSecret, tr_id:"FHKST03010100", custtype:"P" },
         });
         if (!res.ok) throw new Error(`조회 HTTP ${res.status}`);
         const data = await res.json();

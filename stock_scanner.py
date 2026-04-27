@@ -102,10 +102,13 @@ def check_3_candle_rise(candles: list[dict]) -> bool:
     )
 
 
-def analyze(price_data: dict) -> dict | None:
+RSI_THRESHOLD = 40  # 30 → 40으로 완화 (극단적 과매도 → 약세 구간)
+
+def analyze(price_data: dict) -> tuple[dict | None, str]:
+    """(신호결과 | None, RSI 디버그 문자열) 반환"""
     raw = price_data.get("output2", [])
-    if len(raw) < 30:
-        return None
+    if len(raw) < 15:
+        return None, f"데이터 부족({len(raw)}일)"
     candles = [
         {
             "open": float(d["stck_oprc"]),
@@ -119,24 +122,25 @@ def analyze(price_data: dict) -> dict | None:
     rsi = calc_rsi(closes)
     macd_res = calc_macd(closes)
     rise3 = check_3_candle_rise(candles)
+    rsi_tag = f"RSI={rsi:.1f}" if rsi is not None else "RSI=N/A"
 
     signals = []
-    if rsi is not None and rsi <= 30:
+    if rsi is not None and rsi <= RSI_THRESHOLD:
         signals.append(f"RSI과매도({rsi:.1f})")
     if macd_res and macd_res["golden_cross"]:
         signals.append("MACD골든크로스")
     if rise3:
         signals.append("3봉상승")
     if not signals:
-        return None
+        return None, rsi_tag
 
-    confidence = min(99, len(signals) * 25 + (max(0, 30 - rsi) if rsi else 0))
+    confidence = min(99, len(signals) * 25 + (max(0, RSI_THRESHOLD - rsi) if rsi else 0))
     return {
         "price": closes[-1],
         "rsi": f"{rsi:.1f}" if rsi is not None else "N/A",
         "signals": signals,
         "confidence": int(confidence),
-    }
+    }, rsi_tag
 
 
 # ── API Calls ───────────────────────────────────────────────────────────────
@@ -156,19 +160,23 @@ def get_token() -> str:
 
 
 def fetch_daily_price(token: str, code: str) -> dict:
+    today = datetime.date.today()
+    start = today - datetime.timedelta(days=180)  # 6개월치 → MACD 계산 충분
     res = requests.get(
-        f"{API_BASE}/uapi/domestic-stock/v1/quotations/inquire-daily-price",
+        f"{API_BASE}/uapi/domestic-stock/v1/quotations/inquire-daily-itemchartprice",
         params={
             "fid_cond_mrkt_div_code": "J",
             "fid_input_iscd": code,
-            "fid_org_adj_prc": "0",
+            "fid_input_date_1": start.strftime("%Y%m%d"),
+            "fid_input_date_2": today.strftime("%Y%m%d"),
             "fid_period_div_code": "D",
+            "fid_org_adj_prc": "0",
         },
         headers={
             "authorization": f"Bearer {token}",
             "appkey": APP_KEY,
             "appsecret": APP_SECRET,
-            "tr_id": "FHKST01010400",
+            "tr_id": "FHKST03010100",
             "custtype": "P",
         },
         timeout=15,
@@ -218,13 +226,13 @@ def main() -> None:
         print(f"[{i:2d}/{len(STOCKS)}] {name} 분석 중...", end=" ")
         try:
             data = fetch_daily_price(token, code)
-            result = analyze(data)
+            result, debug = analyze(data)
             if result:
-                print(f"🎯 신호: {', '.join(result['signals'])}")
+                print(f"🎯 신호: {', '.join(result['signals'])} ({debug})")
                 hits.append((code, name, result))
                 send_discord(code, name, result)
             else:
-                print("신호 없음")
+                print(f"신호 없음 ({debug})")
             time.sleep(0.25)
         except Exception as e:
             print(f"⚠️  오류: {e}")

@@ -122,9 +122,11 @@ function check3CandleRise(candles) {
   );
 }
 
+const RSI_THRESHOLD = 40;
+
 function analyzeStock(priceData) {
   const raw = priceData?.output2;
-  if (!raw || raw.length < 30) return null;
+  if (!raw || raw.length < 15) return null;
 
   const candles = [...raw].reverse().map((d) => ({
     open: parseFloat(d.stck_oprc),
@@ -139,14 +141,14 @@ function analyzeStock(priceData) {
   const threeCandle = check3CandleRise(candles);
 
   const signals = [];
-  if (rsi !== null && rsi <= 30) signals.push(`RSI과매도(${rsi.toFixed(1)})`);
+  if (rsi !== null && rsi <= RSI_THRESHOLD) signals.push(`RSI과매도(${rsi.toFixed(1)})`);
   if (macdResult?.goldenCross) signals.push("MACD골든크로스");
   if (threeCandle) signals.push("3봉상승");
   if (signals.length === 0) return null;
 
   const confidence = Math.min(
     99,
-    signals.length * 25 + (rsi !== null ? Math.max(0, 30 - rsi) : 0)
+    signals.length * 25 + (rsi !== null ? Math.max(0, RSI_THRESHOLD - rsi) : 0)
   );
 
   return {
@@ -358,20 +360,26 @@ export default function StockScanner() {
   };
 
   const fetchDailyPrice = async (token, code) => {
+    const today = new Date();
+    const start = new Date(today);
+    start.setDate(start.getDate() - 180);
+    const fmt = (d) => d.toISOString().slice(0, 10).replace(/-/g, "");
     const p = new URLSearchParams({
       fid_cond_mrkt_div_code: "J",
       fid_input_iscd: code,
-      fid_org_adj_prc: "0",
+      fid_input_date_1: fmt(start),
+      fid_input_date_2: fmt(today),
       fid_period_div_code: "D",
+      fid_org_adj_prc: "0",
     });
     const res = await fetch(
-      `${API_BASE}/uapi/domestic-stock/v1/quotations/inquire-daily-price?${p}`,
+      `${API_BASE}/uapi/domestic-stock/v1/quotations/inquire-daily-itemchartprice?${p}`,
       {
         headers: {
           authorization: `Bearer ${token}`,
           appkey: appKey,
           appsecret: appSecret,
-          tr_id: "FHKST01010400",
+          tr_id: "FHKST03010100",
           custtype: "P",
         },
       }
@@ -414,9 +422,10 @@ export default function StockScanner() {
 
         try {
           const data = await fetchDailyPrice(token, stock.code);
+          const raw = data?.output2 ?? [];
           const analysis = analyzeStock(data);
           if (analysis) {
-            addLog(`🎯 신호: ${stock.name} — ${analysis.signals.join(", ")}`);
+            addLog(`🎯 ${stock.name} — ${analysis.signals.join(", ")} RSI=${analysis.rsi}`);
             setResults((prev) => [...prev, { stock, analysis }]);
             if (discordUrl) {
               try {
@@ -426,6 +435,10 @@ export default function StockScanner() {
                 addLog(`⚠️ Discord 오류: ${e.message}`);
               }
             }
+          } else {
+            const closes = [...raw].reverse().map((d) => parseFloat(d.stck_clpr));
+            const rsi = calcRSI(closes);
+            addLog(`— ${stock.name} 신호 없음 RSI=${rsi ? rsi.toFixed(1) : "N/A"} (${raw.length}일)`);
           }
           await new Promise((r) => setTimeout(r, 250));
         } catch (e) {
