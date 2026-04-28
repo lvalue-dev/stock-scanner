@@ -2,15 +2,20 @@ name: 주식 스캐너
 
 on:
   schedule:
-    # 평일 오전 9시 ~ 오후 3시, 매 30분마다 (UTC 기준 한국 -9h)
+    # 평일 오전 9시 ~ 오후 3시, 매 30분마다 (UTC+9 → UTC -9h)
     - cron: "0,30 0-6 * * 1-5"
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   scan:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-python@v5
         with:
@@ -25,3 +30,11 @@ jobs:
           KI_APP_SECRET: ${{ secrets.KI_APP_SECRET }}
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: python stock_scanner.py
+
+      - name: 결과 커밋 & 푸시
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add docs/data/
+          git diff --staged --quiet || git commit -m "📊 스캔 결과 $(TZ=Asia/Seoul date '+%Y-%m-%d %H:%M KST')"
+          git push origin HEAD

@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>📈 주식 스캐너</title>
+<style>
+:root{--bg:#0d0d1f;--bg2:#12122a;--bg3:#1a1a38;--bd:#2a2a50;--tx:#dde1f0;--tx2:#888;
+  --pu:#8080ff;--gn:#00cc66;--rd:#cc3333;--or:#ffaa00;}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--tx);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;min-height:100vh}
+/* ── PIN ── */
+#pin-screen{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:100}
+.pin-box{text-align:center;padding:32px 24px;background:var(--bg2);border:1px solid var(--bd);border-radius:16px;width:300px}
+.pin-box h2{color:var(--pu);font-size:22px;margin-bottom:8px}
+.pin-box p{color:var(--tx2);font-size:13px;margin-bottom:24px}
+.pin-dots{display:flex;justify-content:center;gap:12px;margin-bottom:24px}
+.pin-dot{width:14px;height:14px;border-radius:50%;background:var(--bd);transition:.2s}
+.pin-dot.filled{background:var(--pu)}
+.pin-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.pin-pad button{padding:16px;background:var(--bg3);border:1px solid var(--bd);border-radius:10px;
+  color:var(--tx);font-size:20px;font-weight:600;cursor:pointer;transition:.15s}
+.pin-pad button:active{background:var(--pu);color:#fff}
+.pin-error{color:var(--rd);font-size:13px;margin-top:12px;min-height:18px}
+.pin-hint{color:var(--tx2);font-size:11px;margin-top:12px}
+/* ── Layout ── */
+#app{display:none;max-width:520px;margin:0 auto}
+header{background:linear-gradient(135deg,#1a1a40,#2a2a60);padding:14px 16px;
+  display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--bd)}
+header h1{font-size:18px;color:var(--pu)}
+header .meta{font-size:11px;color:var(--tx2);text-align:right}
+header .meta b{color:var(--tx)}
+.lock-btn{background:none;border:none;color:var(--tx2);cursor:pointer;font-size:16px;padding:4px}
+.tabs{display:flex;background:var(--bg2);border-bottom:1px solid var(--bd);position:sticky;top:0;z-index:10}
+.tabs button{flex:1;padding:12px 4px;font-size:12px;font-weight:400;color:var(--tx2);
+  background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;transition:.15s}
+.tabs button.active{font-weight:700;color:var(--pu);border-bottom-color:var(--pu)}
+.tab-body{padding:14px}
+/* ── Cards ── */
+.card{background:var(--bg2);border-radius:12px;padding:14px;margin-bottom:12px;border-left:3px solid var(--gn)}
+.card.sell{border-left-color:var(--rd)}
+.card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.card-name{font-size:15px;font-weight:700}
+.card-code{font-size:11px;color:var(--tx2);margin-left:6px}
+.score-pill{padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700}
+.score-high{background:#00cc6633;color:var(--gn)}
+.score-mid{background:#ffaa0033;color:var(--or)}
+.score-low{background:#cc333333;color:var(--rd)}
+.price-row{display:flex;align-items:baseline;gap:8px;margin-bottom:10px}
+.price{font-size:22px;font-weight:700;color:#00ff88}
+.change{font-size:13px}
+.up{color:var(--rd)}.dn{color:#4488ff}.flat{color:var(--tx2)}
+.prediction{font-size:13px;font-weight:600;color:var(--or);margin-bottom:10px}
+.zones{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px}
+.zone{background:var(--bg3);border-radius:8px;padding:8px 10px}
+.zone-label{font-size:10px;color:var(--tx2);margin-bottom:3px}
+.zone-val{font-size:13px;font-weight:600}
+.zone-buy .zone-val{color:var(--gn)}
+.zone-sell .zone-val{color:var(--rd)}
+.zone-target .zone-val{color:var(--pu)}
+.zone-stop .zone-val{color:var(--or)}
+.signals{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px}
+.sig{padding:2px 8px;border-radius:12px;font-size:11px;background:#8080ff22;color:var(--pu)}
+.indicators{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}
+.ind{background:var(--bg3);border-radius:6px;padding:6px 8px;text-align:center}
+.ind-label{font-size:10px;color:var(--tx2)}
+.ind-val{font-size:13px;font-weight:600;margin-top:2px}
+/* ── History ── */
+.hist-filter{display:flex;gap:8px;margin-bottom:12px}
+.hist-filter input,.hist-filter select{flex:1;padding:8px 10px;background:var(--bg3);
+  border:1px solid var(--bd);border-radius:8px;color:var(--tx);font-size:13px}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{padding:8px 6px;text-align:left;color:var(--tx2);border-bottom:1px solid var(--bd);font-weight:500}
+td{padding:8px 6px;border-bottom:1px solid #1a1a2e}
+tr:last-child td{border-bottom:none}
+/* ── Portfolio ── */
+.pf-summary{background:var(--bg2);border-radius:12px;padding:14px;margin-bottom:14px}
+.pf-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.pf-label{font-size:12px;color:var(--tx2)}
+.pf-val{font-size:14px;font-weight:600}
+.pf-total{font-size:20px;font-weight:700;margin-top:8px}
+.pf-add-form{background:var(--bg2);border-radius:12px;padding:14px;margin-bottom:14px}
+.pf-add-form h3{font-size:14px;margin-bottom:10px;color:var(--pu)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+input,select{width:100%;padding:10px 12px;background:var(--bg3);border:1px solid var(--bd);
+  border-radius:8px;color:var(--tx);font-size:13px}
+/* ── Buttons ── */
+.btn{width:100%;padding:12px;border-radius:10px;border:none;font-size:14px;font-weight:700;cursor:pointer;color:#fff}
+.btn-green{background:var(--gn)}
+.btn-blue{background:#2255cc}
+.btn-red{background:var(--rd)}
+.btn-sm{padding:6px 12px;width:auto;font-size:12px;border-radius:6px}
+/* ── Settings ── */
+.setting-group{background:var(--bg2);border-radius:12px;padding:14px;margin-bottom:12px}
+.setting-group h3{font-size:13px;color:var(--tx2);margin-bottom:12px;font-weight:500}
+label{display:block;font-size:12px;color:var(--tx2);margin-bottom:4px}
+.form-gap{margin-bottom:12px}
+/* ── Empty ── */
+.empty{text-align:center;color:var(--tx2);padding:48px 20px;font-size:14px}
+.badge{display:inline-block;background:var(--rd);color:#fff;border-radius:10px;
+  font-size:10px;padding:1px 6px;margin-left:4px;vertical-align:middle}
+</style>
+</head>
+<body>
+
+<!-- PIN Screen -->
+<div id="pin-screen">
+  <div class="pin-box">
+    <h2>📈 주식 스캐너</h2>
+    <p id="pin-desc">PIN을 입력하세요</p>
+    <div class="pin-dots" id="pin-dots">
+      <div class="pin-dot" id="d0"></div><div class="pin-dot" id="d1"></div>
+      <div class="pin-dot" id="d2"></div><div class="pin-dot" id="d3"></div>
+    </div>
+    <div class="pin-pad">
+      <button onclick="pinKey('1')">1</button><button onclick="pinKey('2')">2</button><button onclick="pinKey('3')">3</button>
+      <button onclick="pinKey('4')">4</button><button onclick="pinKey('5')">5</button><button onclick="pinKey('6')">6</button>
+      <button onclick="pinKey('7')">7</button><button onclick="pinKey('8')">8</button><button onclick="pinKey('9')">9</button>
+      <button onclick="pinKey('C')" style="font-size:14px">지우기</button>
+      <button onclick="pinKey('0')">0</button>
+      <button onclick="pinKey('OK')" style="background:#2255cc;color:#fff">확인</button>
+    </div>
+    <div class="pin-error" id="pin-error"></div>
+    <div class="pin-hint" id="pin-hint"></div>
+  </div>
+</div>
+
+<!-- App -->
+<div id="app">
+  <header>
+    <h1>📈 주식 스캐너</h1>
+    <div style="display:flex;align-items:center;gap:10px">
+      <div class="meta">
+        <div>마지막 스캔</div>
+        <div><b id="scan-time">—</b></div>
+      </div>
+      <button class="lock-btn" onclick="lock()" title="잠금">🔒</button>
+    </div>
+  </header>
+
+  <div class="tabs">
+    <button class="active" onclick="switchTab('signals',this)">신호<span class="badge" id="sig-badge" style="display:none">0</span></button>
+    <button onclick="switchTab('history',this)">히스토리</button>
+    <button onclick="switchTab('portfolio',this)">포트폴리오</button>
+    <button onclick="switchTab('settings',this)">설정</button>
+  </div>
+
+  <!-- 신호 탭 -->
+  <div class="tab-body" id="tab-signals">
+    <div id="signals-list"><div class="empty">데이터를 불러오는 중...</div></div>
+  </div>
+
+  <!-- 히스토리 탭 -->
+  <div class="tab-body" id="tab-history" style="display:none">
+    <div class="hist-filter">
+      <input type="text" id="hist-search" placeholder="종목 검색..." oninput="renderHistory()">
+      <select id="hist-days" onchange="renderHistory()">
+        <option value="7">7일</option><option value="30" selected>30일</option>
+        <option value="90">90일</option><option value="999">전체</option>
+      </select>
+    </div>
+    <div id="history-table"></div>
+  </div>
+
+  <!-- 포트폴리오 탭 -->
+  <div class="tab-body" id="tab-portfolio" style="display:none">
+    <div class="pf-summary" id="pf-summary"></div>
+    <div class="pf-add-form">
+      <h3>➕ 종목 추가</h3>
+      <div class="form-row">
+        <div><label>종목코드</label><input id="pf-code" placeholder="예: 005930" maxlength="6"></div>
+        <div><label>종목명</label><input id="pf-name" placeholder="예: 삼성전자"></div>
+      </div>
+      <div class="form-row">
+        <div><label>수량</label><input id="pf-qty" type="number" placeholder="10"></div>
+        <div><label>평균매수가</label><input id="pf-price" type="number" placeholder="72000"></div>
+      </div>
+      <button class="btn btn-green" onclick="addHolding()">추가</button>
+    </div>
+    <div id="pf-holdings"></div>
+  </div>
+
+  <!-- 설정 탭 -->
+  <div class="tab-body" id="tab-settings" style="display:none">
+    <div class="setting-group">
+      <h3>🔐 PIN 변경</h3>
+      <div class="form-gap"><label>현재 PIN</label><input id="cur-pin" type="password" maxlength="4" inputmode="numeric"></div>
+      <div class="form-gap"><label>새 PIN (4자리)</label><input id="new-pin" type="password" maxlength="4" inputmode="numeric"></div>
+      <div class="form-gap"><label>새 PIN 확인</label><input id="new-pin2" type="password" maxlength="4" inputmode="numeric"></div>
+      <button class="btn btn-blue" onclick="changePin()">PIN 변경</button>
+    </div>
+    <div class="setting-group">
+      <h3>💼 포트폴리오 백업</h3>
+      <div style="display:flex;gap:8px;margin-top:4px">
+        <button class="btn btn-blue btn-sm" onclick="exportPortfolio()">JSON 내보내기</button>
+        <button class="btn btn-blue btn-sm" onclick="document.getElementById('pf-import').click()">JSON 가져오기</button>
+        <input id="pf-import" type="file" accept=".json" style="display:none" onchange="importPortfolio(event)">
+      </div>
+    </div>
+    <div class="setting-group">
+      <h3>ℹ️ 정보</h3>
+      <div style="font-size:12px;color:var(--tx2);line-height:1.9">
+        • GitHub Actions가 장중 30분마다 자동 스캔<br>
+        • 분석: RSI·MACD·볼린저밴드·이평선·스토캐스틱·거래량<br>
+        • Discord 웹훅으로 신호 즉시 알림<br>
+        • 포트폴리오는 이 기기의 브라우저에 저장됩니다
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── State ────────────────────────────────────────────────────────────────────
+let results = {signals:[], scan_time:'', signal_count:0};
+let histLog = [];
+let portfolio = JSON.parse(localStorage.getItem('pf_holdings') || '[]');
+let serverPortfolio = null;
+
+// ── Auth ─────────────────────────────────────────────────────────────────────
+let pinBuffer = '';
+const SALT = 'stock-scanner-2025';
+
+async function sha256(str) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+function updateDots() {
+  for(let i=0;i<4;i++) document.getElementById('d'+i).classList.toggle('filled', i<pinBuffer.length);
+}
+
+function pinKey(k) {
+  if(k==='C') { pinBuffer=pinBuffer.slice(0,-1); updateDots(); return; }
+  if(k==='OK') { submitPin(); return; }
+  if(pinBuffer.length>=4) return;
+  pinBuffer+=k; updateDots();
+  if(pinBuffer.length===4) setTimeout(submitPin,150);
+}
+
+async function submitPin() {
+  const stored = localStorage.getItem('pin_hash');
+  const hash = await sha256(pinBuffer + SALT);
+  if(!stored) {
+    localStorage.setItem('pin_hash', hash);
+    document.getElementById('pin-screen').style.display='none';
+    document.getElementById('app').style.display='block';
+    localStorage.setItem('pin_set','1');
+    init();
+  } else if(hash===stored) {
+    document.getElementById('pin-screen').style.display='none';
+    document.getElementById('app').style.display='block';
+    init();
+  } else {
+    document.getElementById('pin-error').textContent='PIN이 틀렸습니다';
+    pinBuffer=''; updateDots();
+    setTimeout(()=>document.getElementById('pin-error').textContent='', 1500);
+  }
+}
+
+function lock() {
+  pinBuffer=''; updateDots();
+  document.getElementById('pin-screen').style.display='flex';
+  document.getElementById('app').style.display='none';
+}
+
+async function changePin() {
+  const cur=document.getElementById('cur-pin').value;
+  const n1=document.getElementById('new-pin').value;
+  const n2=document.getElementById('new-pin2').value;
+  if(n1.length!==4||!/^\d{4}$/.test(n1)){alert('새 PIN은 숫자 4자리여야 합니다');return;}
+  if(n1!==n2){alert('새 PIN이 일치하지 않습니다');return;}
+  const curHash=await sha256(cur+SALT);
+  if(curHash!==localStorage.getItem('pin_hash')){alert('현재 PIN이 틀렸습니다');return;}
+  localStorage.setItem('pin_hash', await sha256(n1+SALT));
+  alert('PIN이 변경됐습니다');
+  ['cur-pin','new-pin','new-pin2'].forEach(id=>document.getElementById(id).value='');
+}
+
+// ── Data Loading ─────────────────────────────────────────────────────────────
+async function fetchJSON(path) {
+  try {
+    const r = await fetch(path+'?t='+Date.now());
+    if(!r.ok) return null;
+    return await r.json();
+  } catch { return null; }
+}
+
+async function init() {
+  const [r, h, p] = await Promise.all([
+    fetchJSON('data/results.json'),
+    fetchJSON('data/signals_log.json'),
+    fetchJSON('data/portfolio.json'),
+  ]);
+  if(r) { results=r; document.getElementById('scan-time').textContent=r.scan_time||'—'; }
+  if(h) histLog=h;
+  serverPortfolio=p;
+  renderSignals();
+  renderHistory();
+  renderPortfolio();
+  // 미설정 시 PIN 안내
+  if(!localStorage.getItem('pin_set'))
+    document.getElementById('pin-hint').textContent='※ 처음 사용: PIN을 입력하면 자동 설정됩니다';
+}
+
+// ── Tab ──────────────────────────────────────────────────────────────────────
+function switchTab(id, btn) {
+  ['signals','history','portfolio','settings'].forEach(t=>{
+    document.getElementById('tab-'+t).style.display = t===id?'block':'none';
+  });
+  document.querySelectorAll('.tabs button').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  if(id==='history') renderHistory();
+  if(id==='portfolio') renderPortfolio();
+}
+
+// ── Signals Tab ───────────────────────────────────────────────────────────────
+function scoreClass(s){ return s>=65?'score-high':s>=55?'score-mid':'score-low'; }
+function changeHtml(p){ return p>0?`<span class="up">▲${p}%</span>`:p<0?`<span class="dn">▼${Math.abs(p)}%</span>`:`<span class="flat">-</span>`; }
+function pf(v){ return v!=null?Number(v).toLocaleString()+'원':'—'; }
+
+function renderSignals() {
+  const el = document.getElementById('signals-list');
+  const badge = document.getElementById('sig-badge');
+  const sigs = results.signals||[];
+  badge.textContent=sigs.length;
+  badge.style.display=sigs.length?'inline':'none';
+  if(!sigs.length){
+    el.innerHTML=`<div class="empty">${results.scan_time?'신호 없음':'아직 스캔 데이터가 없습니다\nGitHub Actions가 장중에 자동 실행됩니다'}</div>`;
+    return;
+  }
+  el.innerHTML=sigs.map(s=>{
+    const borderColor=s.score>=65?'var(--gn)':s.score>=55?'var(--or)':'var(--rd)';
+    return `<div class="card" style="border-left-color:${borderColor}">
+      <div class="card-head">
+        <div><span class="card-name">${s.name}</span><span class="card-code">${s.code}</span></div>
+        <span class="score-pill ${scoreClass(s.score)}">${s.score}점</span>
+      </div>
+      <div class="price-row"><span class="price">${Number(s.price).toLocaleString()}원</span>${changeHtml(s.change_pct)}</div>
+      <div class="prediction">${s.prediction||''}</div>
+      <div class="zones">
+        <div class="zone zone-buy"><div class="zone-label">🟢 매수구간</div><div class="zone-val">${pf(s.buy_zone_min)} ~ ${pf(s.buy_zone_max)}</div></div>
+        <div class="zone zone-sell"><div class="zone-label">🔴 매도구간</div><div class="zone-val">${pf(s.sell_zone_min)} ~ ${pf(s.sell_zone_max)}</div></div>
+        <div class="zone zone-target"><div class="zone-label">🎯 목표가</div><div class="zone-val">${pf(s.target_price)} <small style="color:var(--gn);font-size:11px">(+${s.upside_pct}%)</small></div></div>
+        <div class="zone zone-stop"><div class="zone-label">🛡️ 손절가</div><div class="zone-val">${pf(s.stop_loss)}</div></div>
+      </div>
+      <div class="indicators">
+        <div class="ind"><div class="ind-label">RSI</div><div class="ind-val">${s.rsi}</div></div>
+        <div class="ind"><div class="ind-label">이평선</div><div class="ind-val" style="font-size:11px">${s.alignment||'—'}</div></div>
+        <div class="ind"><div class="ind-label">MA5</div><div class="ind-val" style="font-size:11px">${s.ma5?Number(s.ma5).toLocaleString():'—'}</div></div>
+      </div>
+      <div class="signals">${(s.signals||[]).map(t=>`<span class="sig">${t}</span>`).join('')}</div>
+    </div>`;
+  }).join('');
+}
+
+// ── History Tab ───────────────────────────────────────────────────────────────
+function renderHistory() {
+  const el=document.getElementById('history-table');
+  const q=(document.getElementById('hist-search')||{}).value||'';
+  const days=parseInt((document.getElementById('hist-days')||{}).value||30);
+  const cutoff=new Date(); cutoff.setDate(cutoff.getDate()-days);
+  let rows=histLog.filter(r=>{
+    if(q && !r.name.includes(q) && !r.code.includes(q)) return false;
+    if(new Date(r.date)<cutoff) return false;
+    return true;
+  }).slice().reverse();
+  if(!rows.length){el.innerHTML='<div class="empty">히스토리 없음</div>';return;}
+  el.innerHTML=`<table>
+    <thead><tr><th>날짜</th><th>종목</th><th>점수</th><th>신호</th><th>가격</th></tr></thead>
+    <tbody>${rows.map(r=>`<tr>
+      <td style="color:var(--tx2);white-space:nowrap">${r.date}<br><small>${r.time}</small></td>
+      <td><b>${r.name}</b><br><small style="color:var(--tx2)">${r.code}</small></td>
+      <td><span class="score-pill ${scoreClass(r.score)}">${r.score}</span></td>
+      <td style="font-size:11px;color:var(--pu)">${(r.signals||[]).slice(0,2).join('<br>')}</td>
+      <td style="text-align:right">${Number(r.price).toLocaleString()}<br>
+        ${r.upside_pct!=null?`<small style="color:var(--gn)">목표 +${r.upside_pct}%</small>`:''}
+      </td>
+    </tr>`).join('')}</tbody>
+  </table>`;
+}
+
+// ── Portfolio Tab ─────────────────────────────────────────────────────────────
+function savePf(){ localStorage.setItem('pf_holdings', JSON.stringify(portfolio)); }
+
+function getPriceMap(){
+  const m={};
+  (results.signals||[]).forEach(s=>{ m[s.code]=s.price; });
+  if(serverPortfolio) serverPortfolio.holdings.forEach(h=>{ if(!m[h.code]) m[h.code]=h.current_price; });
+  return m;
+}
+
+function renderPortfolio() {
+  const priceMap=getPriceMap();
+  let tInv=0, tCur=0;
+  const rows=portfolio.map(h=>{
+    const cur=priceMap[h.code]||h.avg_price;
+    const inv=h.qty*h.avg_price, cv=h.qty*cur, pnl=cv-inv, pct=inv?pnl/inv*100:0;
+    tInv+=inv; tCur+=cv;
+    return {h,cur,inv,cv,pnl,pct};
+  });
+  const tPnl=tCur-tInv, tPct=tInv?tPnl/tInv*100:0;
+
+  document.getElementById('pf-summary').innerHTML=`
+    <div class="pf-row"><span class="pf-label">투자원금</span><span class="pf-val">${Number(tInv).toLocaleString()}원</span></div>
+    <div class="pf-row"><span class="pf-label">평가금액</span><span class="pf-val">${Number(tCur).toLocaleString()}원</span></div>
+    <div class="pf-row" style="margin-bottom:0">
+      <span class="pf-label">평가손익</span>
+      <span class="pf-total" style="color:${tPnl>=0?'var(--gn)':'var(--rd)'}">${tPnl>=0?'+':''}${Number(tPnl).toLocaleString()}원
+        <span style="font-size:14px">(${tPct>=0?'+':''}${tPct.toFixed(2)}%)</span>
+      </span>
+    </div>`;
+
+  const el=document.getElementById('pf-holdings');
+  if(!portfolio.length){el.innerHTML='<div class="empty">보유 종목이 없습니다<br>위에서 추가하세요</div>';return;}
+  el.innerHTML=rows.map(({h,cur,pnl,pct})=>`
+    <div class="card" style="border-left-color:${pnl>=0?'var(--gn)':'var(--rd)'}">
+      <div class="card-head">
+        <div><span class="card-name">${h.name}</span><span class="card-code">${h.code}</span></div>
+        <button class="btn btn-red btn-sm" onclick="removeHolding('${h.id}')">삭제</button>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;font-size:13px">
+        <div><div style="color:var(--tx2);font-size:10px">수량</div><b>${h.qty}주</b></div>
+        <div><div style="color:var(--tx2);font-size:10px">매수가</div><b>${Number(h.avg_price).toLocaleString()}</b></div>
+        <div><div style="color:var(--tx2);font-size:10px">현재가</div><b>${Number(cur).toLocaleString()}</b></div>
+      </div>
+      <div style="margin-top:8px;font-size:15px;font-weight:700;color:${pnl>=0?'var(--gn)':'var(--rd)'}">
+        ${pnl>=0?'+':''}${Number(pnl).toLocaleString()}원 (${pct>=0?'+':''}${pct.toFixed(2)}%)
+      </div>
+    </div>`).join('');
+}
+
+function addHolding() {
+  const code=document.getElementById('pf-code').value.trim();
+  const name=document.getElementById('pf-name').value.trim();
+  const qty=parseInt(document.getElementById('pf-qty').value);
+  const avg=parseInt(document.getElementById('pf-price').value);
+  if(!code||!name||!qty||!avg){alert('모든 항목을 입력하세요');return;}
+  const existing=portfolio.find(h=>h.code===code);
+  if(existing){
+    const total=existing.qty+qty;
+    existing.avg_price=Math.round((existing.qty*existing.avg_price+qty*avg)/total);
+    existing.qty=total;
+  } else {
+    portfolio.push({id:Date.now().toString(),code,name,qty,avg_price:avg});
+  }
+  savePf(); renderPortfolio();
+  ['pf-code','pf-name','pf-qty','pf-price'].forEach(id=>document.getElementById(id).value='');
+}
+
+function removeHolding(id) {
+  if(!confirm('삭제하시겠습니까?')) return;
+  portfolio=portfolio.filter(h=>h.id!==id);
+  savePf(); renderPortfolio();
+}
+
+function exportPortfolio() {
+  const blob=new Blob([JSON.stringify({holdings:portfolio.map(h=>({code:h.code,name:h.name,qty:h.qty,avg_price:h.avg_price}))},null,2)],{type:'application/json'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download='portfolio_config.json'; a.click();
+}
+
+function importPortfolio(e) {
+  const file=e.target.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    try{
+      const d=JSON.parse(ev.target.result);
+      if(!d.holdings) throw new Error();
+      portfolio=d.holdings.map(h=>({...h,id:h.id||Date.now().toString()+Math.random()}));
+      savePf(); renderPortfolio(); alert('가져오기 완료');
+    }catch{alert('올바른 포트폴리오 파일이 아닙니다');}
+  };
+  reader.readAsText(file);
+}
+
+// ── Init ─────────────────────────────────────────────────────────────────────
+if(localStorage.getItem('pin_hash')) {
+  document.getElementById('pin-desc').textContent='PIN을 입력하세요';
+} else {
+  document.getElementById('pin-hint').textContent='※ 처음 사용: 원하는 PIN 4자리를 입력해 설정하세요';
+}
+// 키보드 지원
+document.addEventListener('keydown', e=>{
+  if(document.getElementById('pin-screen').style.display==='none') return;
+  if(e.key>='0'&&e.key<='9') pinKey(e.key);
+  else if(e.key==='Backspace') pinKey('C');
+  else if(e.key==='Enter') pinKey('OK');
+});
+</script>
+</body>
+</html>

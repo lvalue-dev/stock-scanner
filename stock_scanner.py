@@ -5,6 +5,7 @@
 """
 
 import os
+import json
 import time
 import datetime
 import requests
@@ -403,6 +404,97 @@ def send_discord(code: str, name: str, a: dict) -> None:
         print(f"  ⚠️  Discord 실패 [{res.status_code}]: {res.text[:150]}")
 
 
+# ── JSON Output ─────────────────────────────────────────────────────────────
+
+def save_results_json(hits: list, now: datetime.datetime) -> None:
+    os.makedirs("docs/data", exist_ok=True)
+    payload = {
+        "scan_time": now.strftime("%Y-%m-%d %H:%M"),
+        "total_scanned": len(STOCKS),
+        "signal_count": len(hits),
+        "signals": [{"code": c, "name": n, **r} for c, n, r in hits],
+    }
+    with open("docs/data/results.json", "w", encoding="utf-8") as f:
+        json.dump(payload, f, ensure_ascii=False, indent=2)
+    print("📄 docs/data/results.json 저장됨")
+
+
+def append_signals_log(hits: list, now: datetime.datetime) -> None:
+    os.makedirs("docs/data", exist_ok=True)
+    path = "docs/data/signals_log.json"
+    try:
+        with open(path, encoding="utf-8") as f:
+            log = json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        log = []
+
+    for code, name, r in hits:
+        log.append({
+            "date":       now.strftime("%Y-%m-%d"),
+            "time":       now.strftime("%H:%M"),
+            "code":       code,
+            "name":       name,
+            "score":      r["score"],
+            "prediction": r["prediction"],
+            "signals":    r["signals"],
+            "price":      r["price"],
+            "change_pct": r.get("change_pct", 0),
+            "target_price": r.get("target_price"),
+            "upside_pct":   r.get("upside_pct"),
+        })
+
+    log = log[-1000:]  # 최대 1000건 유지
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(log, f, ensure_ascii=False, indent=2)
+    print("📄 docs/data/signals_log.json 업데이트됨")
+
+
+def save_portfolio_json(price_map: dict, now: datetime.datetime) -> None:
+    os.makedirs("docs/data", exist_ok=True)
+    try:
+        with open("portfolio_config.json", encoding="utf-8") as f:
+            cfg = json.load(f)
+    except FileNotFoundError:
+        return
+
+    holdings, total_inv, total_cur = [], 0, 0
+    for h in cfg.get("holdings", []):
+        code, qty, avg = h["code"], h["qty"], h["avg_price"]
+        cur = price_map.get(code, h.get("last_price", avg))
+        inv = qty * avg
+        pnl = qty * cur - inv
+        holdings.append({**h, "current_price": cur,
+                         "pnl": round(pnl), "pnl_pct": round(pnl / inv * 100, 2) if inv else 0})
+        total_inv += inv
+        total_cur += qty * cur
+
+    total_pnl = total_cur - total_inv
+    payload = {
+        "updated": now.strftime("%Y-%m-%d %H:%M"),
+        "total_invested": round(total_inv),
+        "total_current":  round(total_cur),
+        "total_pnl":      round(total_pnl),
+        "total_pnl_pct":  round(total_pnl / total_inv * 100, 2) if total_inv else 0,
+        "holdings": holdings,
+    }
+    with open("docs/data/portfolio.json", "w", encoding="utf-8") as f:
+        json.dump(payload, f, ensure_ascii=False, indent=2)
+    print("📄 docs/data/portfolio.json 저장됨")
+
+
+def send_discord_summary(hits: list, now: datetime.datetime) -> None:
+    if not DISCORD_URL or not hits:
+        return
+    lines = [f"• {n} ({c})  점수 {r['score']}  {r['prediction'].split()[0]}  목표 {r.get('target_price',0):,}원"
+             for c, n, r in hits[:10]]
+    payload = {"embeds": [{"title": f"📊 [{now:%m/%d %H:%M}] 스캔 완료 — 신호 {len(hits)}개",
+                           "color": 0x8080FF,
+                           "description": "\n".join(lines)}]}
+    res = requests.post(DISCORD_URL, json=payload, timeout=10)
+    if not res.ok:
+        print(f"  ⚠️  요약 Discord 실패 [{res.status_code}]")
+
+
 # ── Main ────────────────────────────────────────────────────────────────────
 
 def main() -> None:
@@ -412,7 +504,7 @@ def main() -> None:
     token = get_token()
     print("토큰 발급 완료\n")
 
-    hits = []
+    hits, price_map = [], {}
     for i, (code, name) in enumerate(STOCKS, 1):
         print(f"[{i:2d}/{len(STOCKS)}] {name:20s}", end=" ")
         try:
@@ -422,22 +514,33 @@ def main() -> None:
                 stars = "★" * (1 + result["score"] // 25)
                 print(f"🎯 점수={result['score']:3d} {stars}  {debug}  {', '.join(result['signals'][:3])}")
                 hits.append((code, name, result))
+                price_map[code] = result["price"]
                 send_discord(code, name, result)
             else:
+                # 가격은 기록 (포트폴리오 현재가 업데이트용)
+                raw = data.get("output2", [])
+                if raw:
+                    price_map[code] = float(raw[0].get("stck_clpr") or 0)
                 print(f"신호 없음  ({debug})")
             time.sleep(0.25)
         except Exception as e:
             print(f"⚠️  오류: {e}")
 
+    hits.sort(key=lambda x: x[2]["score"], reverse=True)
     print(f"\n{'─'*60}")
     print(f"완료 — 신호 {len(hits)}개 발견")
     if hits:
-        hits.sort(key=lambda x: x[2]["score"], reverse=True)
         print(f"\n{'순위':4} {'종목':12} {'점수':6} {'현재가':10} {'목표가':10} {'상승여력':8} 예측")
         print("─" * 70)
         for rank, (code, name, r) in enumerate(hits, 1):
             print(f"{rank:4d} {name:12s} {r['score']:6d} {r['price']:10,.0f} "
                   f"{r['target_price']:10,.0f} {r['upside_pct']:+6.1f}%  {r['prediction']}")
+
+    # JSON 저장 (GitHub Pages 대시보드용)
+    save_results_json(hits, now)
+    append_signals_log(hits, now)
+    save_portfolio_json(price_map, now)
+    send_discord_summary(hits, now)
 
 
 if __name__ == "__main__":
