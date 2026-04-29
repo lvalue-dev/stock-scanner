@@ -305,7 +305,17 @@ function setRtStatus(msg) {
 
 async function getRtToken() {
   const now = Date.now();
+  // 1) 메모리 캐시
   if (rtToken && now < rtTokenExpiry) return rtToken;
+  // 2) localStorage 캐시 (같은 appKey로 발급된 토큰만 재사용)
+  const lsToken  = localStorage.getItem('ki_token');
+  const lsExpiry = parseInt(localStorage.getItem('ki_token_exp') || '0');
+  const lsKey    = localStorage.getItem('ki_token_key');
+  if (lsToken && now < lsExpiry && lsKey === rtAppKey) {
+    rtToken = lsToken; rtTokenExpiry = lsExpiry;
+    return rtToken;
+  }
+  // 3) 신규 발급
   const res = await fetch(`${KI_API}/oauth2/tokenP`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -316,6 +326,9 @@ async function getRtToken() {
   if (!d.access_token) throw new Error('토큰 발급 실패');
   rtToken = d.access_token;
   rtTokenExpiry = now + 23 * 3600 * 1000;
+  localStorage.setItem('ki_token',     rtToken);
+  localStorage.setItem('ki_token_exp', String(rtTokenExpiry));
+  localStorage.setItem('ki_token_key', rtAppKey);
   return rtToken;
 }
 
@@ -375,9 +388,15 @@ async function saveAndStartLive() {
   const key = (document.getElementById('rt-key').value || '').trim();
   const sec = (document.getElementById('rt-sec').value || '').trim();
   if (!key || !sec) { alert('App Key와 Secret을 입력하세요'); return; }
+  // 키가 바뀐 경우 토큰 캐시 무효화
+  if (key !== rtAppKey) {
+    rtToken = null; rtTokenExpiry = 0;
+    wsApprovalKey = null;
+    ['ki_token','ki_token_exp','ki_token_key','ki_approval','ki_approval_exp','ki_approval_key']
+      .forEach(k => localStorage.removeItem(k));
+  }
   rtAppKey = key;
   rtAppSecret = sec;
-  rtToken = null; // 키 변경 시 토큰 재발급
   localStorage.setItem('rt_appkey', key);
   localStorage.setItem('rt_secret', sec);
 
@@ -853,6 +872,15 @@ function setMktStatus(msg) {
 
 async function getApprovalKey() {
   if (wsApprovalKey) return wsApprovalKey;
+  // localStorage 캐시
+  const lsKey    = localStorage.getItem('ki_approval');
+  const lsExpiry = parseInt(localStorage.getItem('ki_approval_exp') || '0');
+  const lsAppKey = localStorage.getItem('ki_approval_key');
+  if (lsKey && Date.now() < lsExpiry && lsAppKey === rtAppKey) {
+    wsApprovalKey = lsKey;
+    return wsApprovalKey;
+  }
+  // 신규 발급
   const res = await fetch(`${KI_API}/oauth2/Approval`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -861,6 +889,10 @@ async function getApprovalKey() {
   const d = await res.json();
   if (!d.approval_key) throw new Error('Approval key 발급 실패');
   wsApprovalKey = d.approval_key;
+  const exp = Date.now() + 23 * 3600 * 1000;
+  localStorage.setItem('ki_approval',     wsApprovalKey);
+  localStorage.setItem('ki_approval_exp', String(exp));
+  localStorage.setItem('ki_approval_key', rtAppKey);
   return wsApprovalKey;
 }
 
