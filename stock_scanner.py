@@ -449,9 +449,9 @@ def append_signals_log(hits: list, now: datetime.datetime) -> None:
     print("📄 docs/data/signals_log.json 업데이트됨")
 
 
-def fetch_market_ranking(token: str, market: str, rank_type: str) -> list:
-    """등락률 순위 조회 (rank_type: 'up'=상승, 'dn'=하락)
-    market: 'J'=KOSPI, 'K'=KOSDAQ
+def fetch_market_ranking(token: str, rank_type: str) -> list:
+    """등락률 순위 조회 — 스크린 코드 211 (전체시장 등락률순)
+    rank_type: 'up'=상승, 'dn'=하락
     """
     headers = {
         "Authorization": f"Bearer {token}",
@@ -459,10 +459,10 @@ def fetch_market_ranking(token: str, market: str, rank_type: str) -> list:
         "tr_id": "FHPST01710000", "custtype": "P",
     }
     params = {
-        "fid_rsfl_rate2": "", "fid_cond_mrkt_div_code": market,
-        "fid_cond_scr_div_code": "20171", "fid_input_iscd": "0000",
+        "fid_rsfl_rate2": "", "fid_cond_mrkt_div_code": "J",
+        "fid_cond_scr_div_code": "211", "fid_input_iscd": "0000",
         "fid_rank_sort_cls_code": "0" if rank_type == "up" else "1",
-        "fid_input_cnt_1": "0", "fid_prc_cls_code": "0",
+        "fid_input_cnt_1": "0", "fid_prc_cls_code": "1",
         "fid_input_price_1": "", "fid_input_price_2": "",
         "fid_vol_cnt": "", "fid_trgt_cls_code": "111111111",
         "fid_trgt_exls_cls_code": "000000", "fid_div_cls_code": "0",
@@ -472,22 +472,22 @@ def fetch_market_ranking(token: str, market: str, rank_type: str) -> list:
         r = requests.get(f"{API_BASE}/uapi/domestic-stock/v1/ranking/fluctuation",
                          headers=headers, params=params, timeout=10)
         if not r.text.strip():
-            print(f"  ⚠️  등락률순위({market}/{rank_type}) 빈 응답 HTTP {r.status_code}")
+            print(f"  ⚠️  등락률순위({rank_type}) 빈 응답 HTTP {r.status_code}")
             return []
         d = r.json()
         if d.get("rt_cd") != "0":
-            print(f"  ⚠️  등락률순위({market}/{rank_type}) rt_cd={d.get('rt_cd')} msg={d.get('msg1')}")
+            print(f"  ⚠️  등락률순위({rank_type}) rt_cd={d.get('rt_cd')} msg={d.get('msg1')}")
             return []
         result = d.get("output", [])[:30]
-        print(f"  ✅  등락률순위({market}/{rank_type}) {len(result)}개")
+        print(f"  ✅  등락률순위({rank_type}) {len(result)}개  1위: {result[0].get('hts_kor_isnm','')} {result[0].get('prdy_ctrt','')}%")
         return result
     except Exception as e:
-        print(f"  ⚠️  등락률순위({market}/{rank_type}) 오류: {e}")
+        print(f"  ⚠️  등락률순위({rank_type}) 오류: {e}")
         return []
 
 
 def fetch_volume_ranking(token: str) -> list:
-    """거래량 순위 — /ranking/fluctuation 엔드포인트를 거래량 정렬(sort_cls=2)로 재사용"""
+    """거래량 순위 — 스크린 코드 20171 (전체시장 거래량순)"""
     headers = {
         "Authorization": f"Bearer {token}",
         "appkey": APP_KEY, "appsecret": APP_SECRET,
@@ -496,7 +496,7 @@ def fetch_volume_ranking(token: str) -> list:
     params = {
         "fid_rsfl_rate2": "", "fid_cond_mrkt_div_code": "J",
         "fid_cond_scr_div_code": "20171", "fid_input_iscd": "0000",
-        "fid_rank_sort_cls_code": "2",
+        "fid_rank_sort_cls_code": "0",
         "fid_input_cnt_1": "0", "fid_prc_cls_code": "0",
         "fid_input_price_1": "", "fid_input_price_2": "",
         "fid_vol_cnt": "", "fid_trgt_cls_code": "111111111",
@@ -514,7 +514,7 @@ def fetch_volume_ranking(token: str) -> list:
             print(f"  ⚠️  거래량순위 rt_cd={d.get('rt_cd')} msg={d.get('msg1')}")
             return []
         result = d.get("output", [])[:30]
-        print(f"  ✅  거래량순위 {len(result)}개")
+        print(f"  ✅  거래량순위 {len(result)}개  1위: {result[0].get('hts_kor_isnm','')}")
         return result
     except Exception as e:
         print(f"  ⚠️  거래량순위 오류: {e}")
@@ -526,8 +526,8 @@ def save_market_ranking_json(token: str, now: datetime.datetime) -> None:
     KOSDAQ 별도 API가 지원되지 않아 전체시장(J) 기준으로 통합 제공
     """
     print("📊 시장 랭킹 조회 중...")
-    up  = fetch_market_ranking(token, "J", "up")
-    dn  = fetch_market_ranking(token, "J", "dn")
+    up  = fetch_market_ranking(token, "up")
+    dn  = fetch_market_ranking(token, "dn")
     vol = fetch_volume_ranking(token)
     ranking = {
         "update_time": now.strftime("%Y-%m-%d %H:%M"),
