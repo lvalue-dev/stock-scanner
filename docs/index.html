@@ -102,6 +102,10 @@ label{display:block;font-size:12px;color:var(--tx2);margin-bottom:4px}
 .all-item{background:var(--bg2);border-radius:10px;padding:10px 12px;margin-bottom:8px;border-left:3px solid var(--bd);transition:.15s}
 .mkt-kospi{font-size:9px;padding:1px 5px;border-radius:4px;background:#2255cc33;color:#88aaff;margin-left:4px}
 .mkt-kosdaq{font-size:9px;padding:1px 5px;border-radius:4px;background:#00cc6633;color:var(--gn);margin-left:4px}
+.mkt-tab{padding:7px 14px;border-radius:20px;border:1px solid var(--bd);background:var(--bg3);color:var(--tx2);font-size:12px;cursor:pointer;white-space:nowrap;transition:.15s}
+.mkt-tab.active{background:var(--pu);color:#fff;border-color:var(--pu)}
+.mkt-mkt-btn{padding:6px 14px;border-radius:6px;border:1px solid var(--bd);background:var(--bg3);color:var(--tx2);font-size:12px;cursor:pointer;transition:.15s}
+.mkt-mkt-btn.active{background:#2255cc;color:#fff;border-color:#2255cc}
 .tabs button{font-size:11px}
 </style>
 </head>
@@ -149,6 +153,7 @@ label{display:block;font-size:12px;color:var(--tx2);margin-bottom:4px}
     <button onclick="switchTab('all',this)">전체</button>
     <button onclick="switchTab('history',this)">히스토리</button>
     <button onclick="switchTab('portfolio',this)">포트폴리오</button>
+    <button onclick="switchTab('market',this)">시장현황</button>
     <button onclick="switchTab('settings',this)">설정</button>
   </div>
 
@@ -206,6 +211,25 @@ label{display:block;font-size:12px;color:var(--tx2);margin-bottom:4px}
       <button class="btn btn-green" onclick="addHolding()">추가</button>
     </div>
     <div id="pf-holdings"></div>
+  </div>
+
+  <!-- 시장현황 탭 -->
+  <div class="tab-body" id="tab-market" style="display:none">
+    <!-- 서브탭 -->
+    <div style="display:flex;gap:6px;margin-bottom:10px;overflow-x:auto;padding-bottom:2px">
+      <button class="mkt-tab active" onclick="setMktTab('up',this)">📈 상승</button>
+      <button class="mkt-tab" onclick="setMktTab('dn',this)">📉 하락</button>
+      <button class="mkt-tab" onclick="setMktTab('vol',this)">🔥 거래량</button>
+      <button class="mkt-tab" onclick="setMktTab('watch',this)">⭐ 관심종목</button>
+    </div>
+    <!-- 시장 선택 -->
+    <div id="mkt-market-btns" style="display:flex;gap:6px;margin-bottom:10px">
+      <button class="mkt-mkt-btn active" id="mkt-J" onclick="setMktMarket('J',this)">KOSPI</button>
+      <button class="mkt-mkt-btn" id="mkt-Q" onclick="setMktMarket('Q',this)">KOSDAQ</button>
+    </div>
+    <!-- 콘텐츠 -->
+    <div id="mkt-content"><div class="empty">로딩 중...</div></div>
+    <div id="mkt-status" style="font-size:11px;color:var(--tx2);margin-top:8px;min-height:16px"></div>
   </div>
 
   <!-- 설정 탭 -->
@@ -480,7 +504,7 @@ async function init() {
 
 // ── Tab ──────────────────────────────────────────────────────────────────────
 function switchTab(id, btn) {
-  ['signals','all','history','portfolio','settings'].forEach(t=>{
+  ['signals','all','history','portfolio','market','settings'].forEach(t=>{
     document.getElementById('tab-'+t).style.display = t===id?'block':'none';
   });
   document.querySelectorAll('.tabs button').forEach(b=>b.classList.remove('active'));
@@ -488,6 +512,8 @@ function switchTab(id, btn) {
   if(id==='all') renderAllStocks();
   if(id==='history') renderHistory();
   if(id==='portfolio') renderPortfolio();
+  if(id==='market') startMarketPolling();
+  else stopMarketPolling();
 }
 
 // ── Signals Tab ───────────────────────────────────────────────────────────────
@@ -718,6 +744,306 @@ function importPortfolio(e) {
     }catch{alert('올바른 포트폴리오 파일이 아닙니다');}
   };
   reader.readAsText(file);
+}
+
+// ── 시장현황 탭 ──────────────────────────────────────────────────────────────
+let mktTab = 'up';
+let mktMarket = 'J';   // J=KOSPI, Q=KOSDAQ
+let mktInterval = null;
+
+// ── 랭킹 REST ────────────────────────────────────────────────────────────────
+async function fetchRanking(type) {
+  if (!rtAppKey || !rtAppSecret) return null;
+  const token = await getRtToken();
+  let endpoint, params;
+  if (type === 'vol') {
+    endpoint = '/uapi/domestic-stock/v1/ranking/volume';
+    params = new URLSearchParams({
+      fid_cond_mrkt_div_code: mktMarket,
+      fid_cond_scr_div_code: '20171',
+      fid_input_iscd: '0000',
+      fid_rank_sort_cls_code: '0',
+      fid_input_cnt_1: '0',
+      fid_prc_cls_code: '0',
+      fid_input_price_1: '',
+      fid_input_price_2: '',
+      fid_vol_cnt: '150000',
+      fid_trgt_cls_code: '111111111',
+      fid_trgt_exls_cls_code: '000000',
+      fid_div_cls_code: '0',
+      fid_input_date_1: '',
+    });
+  } else {
+    endpoint = '/uapi/domestic-stock/v1/ranking/fluctuation';
+    params = new URLSearchParams({
+      fid_rsfl_rate2: '',
+      fid_cond_mrkt_div_code: mktMarket,
+      fid_cond_scr_div_code: '211',
+      fid_input_iscd: '0000',
+      fid_rank_sort_cls_code: type === 'dn' ? '1' : '0',
+      fid_input_cnt_1: '0',
+      fid_prc_cls_code: '1',
+      fid_input_price_1: '',
+      fid_input_price_2: '',
+      fid_vol_cnt: '',
+      fid_trgt_cls_code: '0',
+      fid_trgt_exls_cls_code: '0',
+      fid_div_cls_code: '0',
+      fid_rsfl_rate1: '',
+    });
+  }
+  const res = await fetch(`${KI_API}${endpoint}?${params}`, {
+    headers: {
+      authorization: `Bearer ${token}`,
+      appkey: rtAppKey,
+      appsecret: rtAppSecret,
+      tr_id: 'FHPST01710000',
+      custtype: 'P',
+    },
+  });
+  const data = await res.json();
+  if (data.rt_cd !== '0') throw new Error(data.msg1 || 'API 오류');
+  return data.output || [];
+}
+
+function renderRanking(list) {
+  const el = document.getElementById('mkt-content');
+  if (!list || !list.length) { el.innerHTML = '<div class="empty">데이터 없음</div>'; return; }
+  el.innerHTML = list.slice(0, 50).map((s, i) => {
+    const code = s.mksc_shrn_iscd || s.stck_shrn_iscd || '';
+    const name = s.hts_kor_isnm || '';
+    const price = parseInt(s.stck_prpr || 0);
+    const changePct = parseFloat(s.prdy_ctrt || 0);
+    const change = parseInt(s.prdy_vrss || 0);
+    const vol = parseInt(s.acml_vol || 0);
+    const up = changePct > 0, dn = changePct < 0;
+    const clr = up ? 'var(--rd)' : dn ? '#4488ff' : 'var(--tx2)';
+    const arrow = up ? '▲' : dn ? '▼' : '—';
+    return `<div class="all-item" style="border-left-color:${clr}">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="color:var(--tx2);font-size:11px;min-width:22px;text-align:right">${i+1}</span>
+          <div>
+            <span style="font-weight:700;font-size:14px">${name}</span>
+            <span style="color:var(--tx2);font-size:11px;margin-left:4px">${code}</span>
+          </div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:13px;font-weight:700">${price.toLocaleString()}원</div>
+          <div style="font-size:12px;color:${clr}">${arrow}${Math.abs(changePct).toFixed(2)}%
+            <span style="color:var(--tx2)">(${change>=0?'+':''}${change.toLocaleString()})</span>
+          </div>
+        </div>
+      </div>
+      <div style="font-size:11px;color:var(--tx2);margin-top:3px">거래량 ${vol.toLocaleString()}</div>
+    </div>`;
+  }).join('');
+}
+
+// ── WebSocket 관심종목 ────────────────────────────────────────────────────────
+let wsConn = null;
+let wsApprovalKey = null;
+let watchlist = JSON.parse(localStorage.getItem('mkt_watchlist') || '[]'); // [{code,name}]
+let wsPrices = {}; // { code: { price, change, changePct, sign, volume, time } }
+
+function setMktStatus(msg) {
+  const el = document.getElementById('mkt-status');
+  if (el) el.textContent = msg;
+}
+
+async function getApprovalKey() {
+  if (wsApprovalKey) return wsApprovalKey;
+  const res = await fetch(`${KI_API}/oauth2/Approval`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ grant_type: 'client_credentials', appkey: rtAppKey, secretkey: rtAppSecret }),
+  });
+  const d = await res.json();
+  if (!d.approval_key) throw new Error('Approval key 발급 실패');
+  wsApprovalKey = d.approval_key;
+  return wsApprovalKey;
+}
+
+async function connectWebSocket() {
+  if (wsConn && (wsConn.readyState === WebSocket.OPEN || wsConn.readyState === WebSocket.CONNECTING)) return;
+  if (!rtAppKey || !rtAppSecret) { setMktStatus('설정 탭에서 API 키를 먼저 입력하세요'); return; }
+  try {
+    const approvalKey = await getApprovalKey();
+    wsConn = new WebSocket('wss://ops.koreainvestment.com:21000');
+    wsConn._key = approvalKey;
+
+    wsConn.onopen = () => {
+      setMktStatus('🟢 WebSocket 연결됨 — 실시간 체결 수신 중');
+      watchlist.forEach(w => wsSubscribe(w.code));
+    };
+
+    wsConn.onmessage = (evt) => {
+      const raw = evt.data;
+      // JSON 제어 메시지 (PINGPONG 등)
+      if (raw[0] === '{') {
+        try {
+          const msg = JSON.parse(raw);
+          if (msg.header?.tr_id === 'PINGPONG') wsConn.send(raw);
+        } catch {}
+        return;
+      }
+      // pipe-delimited 실시간 데이터: {type}|{trId}|[{cnt}|]{data}
+      const parts = raw.split('|');
+      if (parts.length < 3 || parts[1] !== 'H0STCNT0') return;
+      // cnt 필드가 있는 경우(parts[2]가 숫자)는 parts[3], 없으면 parts[2]
+      const body = isNaN(parts[2]) ? parts[2] : (parts[3] || '');
+      if (!body) return;
+      const f = body.split('^');
+      if (f.length < 14) return;
+      const code = f[0];
+      wsPrices[code] = {
+        time: f[1],
+        price: parseInt(f[2]),
+        sign: f[3],   // 1:상한 2:상승 3:보합 4:하한 5:하락
+        change: parseInt(f[4]),
+        changePct: parseFloat(f[5]),
+        volume: parseInt(f[13]),
+      };
+      if (mktTab === 'watch') renderWatchlist();
+    };
+
+    wsConn.onerror = () => setMktStatus('🔴 WebSocket 연결 오류');
+    wsConn.onclose = () => setMktStatus('⚫ WebSocket 연결 끊김');
+  } catch (e) {
+    setMktStatus(`WebSocket 오류: ${e.message}`);
+  }
+}
+
+function wsSubscribe(code) {
+  if (!wsConn || wsConn.readyState !== WebSocket.OPEN) return;
+  wsConn.send(JSON.stringify({
+    header: { approval_key: wsConn._key, custtype: 'P', tr_type: '1', 'content-type': 'utf-8' },
+    body: { input: { tr_id: 'H0STCNT0', tr_key: code } },
+  }));
+}
+
+function wsUnsubscribe(code) {
+  if (!wsConn || wsConn.readyState !== WebSocket.OPEN) return;
+  wsConn.send(JSON.stringify({
+    header: { approval_key: wsConn._key, custtype: 'P', tr_type: '2', 'content-type': 'utf-8' },
+    body: { input: { tr_id: 'H0STCNT0', tr_key: code } },
+  }));
+}
+
+function disconnectWebSocket() {
+  if (wsConn) { wsConn.close(); wsConn = null; }
+  wsApprovalKey = null;
+}
+
+function watchlistFormHtml() {
+  return `<div style="background:var(--bg2);border-radius:10px;padding:12px;margin-top:12px">
+    <div style="font-size:13px;color:var(--pu);margin-bottom:8px;font-weight:600">➕ 관심종목 추가 (최대 40종목)</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap">
+      <input id="ws-code" placeholder="종목코드 (예: 005930)" style="flex:1;min-width:120px;padding:9px 12px;background:var(--bg3);border:1px solid var(--bd);border-radius:8px;color:var(--tx);font-size:13px">
+      <input id="ws-name" placeholder="종목명" style="flex:1;min-width:100px;padding:9px 12px;background:var(--bg3);border:1px solid var(--bd);border-radius:8px;color:var(--tx);font-size:13px">
+      <button class="btn btn-green btn-sm" onclick="addToWatchlist()" style="white-space:nowrap">추가</button>
+    </div>
+  </div>`;
+}
+
+function renderWatchlist() {
+  const el = document.getElementById('mkt-content');
+  if (!watchlist.length) {
+    el.innerHTML = '<div class="empty" style="margin-bottom:0">관심종목이 없습니다</div>' + watchlistFormHtml();
+    return;
+  }
+  el.innerHTML = watchlist.map(item => {
+    const rt = wsPrices[item.code];
+    const up = rt && rt.changePct > 0, dn = rt && rt.changePct < 0;
+    const clr = up ? 'var(--rd)' : dn ? '#4488ff' : 'var(--tx2)';
+    const arrow = up ? '▲' : dn ? '▼' : '—';
+    return `<div class="all-item" style="border-left-color:${rt ? clr : 'var(--bd)'}">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <span style="font-weight:700;font-size:14px">${item.name}</span>
+          <span style="color:var(--tx2);font-size:11px;margin-left:4px">${item.code}</span>
+          ${rt ? '<span style="font-size:10px;color:#00cc66;margin-left:4px">● LIVE</span>' : '<span style="font-size:10px;color:var(--tx2);margin-left:4px">대기중</span>'}
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="text-align:right">
+            <div style="font-size:14px;font-weight:700">${rt ? rt.price.toLocaleString()+'원' : '—'}</div>
+            ${rt ? `<div style="font-size:12px;color:${clr}">${arrow}${Math.abs(rt.changePct).toFixed(2)}% (${rt.change>=0?'+':''}${rt.change.toLocaleString()})</div>` : ''}
+          </div>
+          <button class="btn btn-red btn-sm" onclick="removeFromWatchlist('${item.code}')">✕</button>
+        </div>
+      </div>
+      ${rt ? `<div style="font-size:11px;color:var(--tx2);margin-top:3px">거래량 ${rt.volume.toLocaleString()} · ${rt.time.replace(/(\d{2})(\d{2})(\d{2})/,'$1:$2:$3')}</div>` : ''}
+    </div>`;
+  }).join('') + watchlistFormHtml();
+}
+
+function addToWatchlist() {
+  const code = (document.getElementById('ws-code').value || '').trim();
+  const name = (document.getElementById('ws-name').value || '').trim() || code;
+  if (!code || !/^\d{6}$/.test(code)) { alert('6자리 종목코드를 입력하세요'); return; }
+  if (watchlist.find(w => w.code === code)) { alert('이미 추가된 종목입니다'); return; }
+  if (watchlist.length >= 40) { alert('관심종목은 최대 40개까지 가능합니다'); return; }
+  watchlist.push({ code, name });
+  localStorage.setItem('mkt_watchlist', JSON.stringify(watchlist));
+  wsSubscribe(code);
+  renderWatchlist();
+}
+
+function removeFromWatchlist(code) {
+  wsUnsubscribe(code);
+  delete wsPrices[code];
+  watchlist = watchlist.filter(w => w.code !== code);
+  localStorage.setItem('mkt_watchlist', JSON.stringify(watchlist));
+  renderWatchlist();
+}
+
+// ── 시장탭 공통 제어 ──────────────────────────────────────────────────────────
+function setMktTab(tab, btn) {
+  mktTab = tab;
+  document.querySelectorAll('.mkt-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const mktBtns = document.getElementById('mkt-market-btns');
+  if (mktBtns) mktBtns.style.display = tab === 'watch' ? 'none' : 'flex';
+  loadMarketTab();
+}
+
+function setMktMarket(code, btn) {
+  mktMarket = code;
+  document.querySelectorAll('.mkt-mkt-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  loadMarketTab();
+}
+
+async function loadMarketTab() {
+  if (!rtAppKey || !rtAppSecret) {
+    document.getElementById('mkt-content').innerHTML =
+      '<div class="empty">설정 탭에서 한국투자 API 키를 먼저 입력하세요</div>';
+    return;
+  }
+  if (mktTab === 'watch') {
+    renderWatchlist();
+    if (!wsConn || wsConn.readyState !== WebSocket.OPEN) await connectWebSocket();
+    return;
+  }
+  document.getElementById('mkt-content').innerHTML = '<div class="empty">로딩 중...</div>';
+  try {
+    const list = await fetchRanking(mktTab);
+    renderRanking(list);
+    setMktStatus(`업데이트: ${new Date().toLocaleTimeString('ko-KR')}`);
+  } catch (e) {
+    document.getElementById('mkt-content').innerHTML = `<div class="empty">오류: ${e.message}</div>`;
+  }
+}
+
+function startMarketPolling() {
+  loadMarketTab();
+  if (mktInterval) clearInterval(mktInterval);
+  mktInterval = setInterval(() => { if (mktTab !== 'watch') loadMarketTab(); }, 30000);
+}
+
+function stopMarketPolling() {
+  if (mktInterval) { clearInterval(mktInterval); mktInterval = null; }
+  if (mktTab === 'watch') disconnectWebSocket();
 }
 
 // ── Init ─────────────────────────────────────────────────────────────────────
