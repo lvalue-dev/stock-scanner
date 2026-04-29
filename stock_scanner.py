@@ -450,7 +450,11 @@ def append_signals_log(hits: list, now: datetime.datetime) -> None:
 
 
 def fetch_market_ranking(token: str, market: str, rank_type: str) -> list:
-    """등락률 순위 조회 (rank_type: 'up'=상승, 'dn'=하락)"""
+    """등락률 순위 조회 (rank_type: 'up'=상승, 'dn'=하락)
+    market: 'J'=KOSPI, 'Q'=KOSDAQ
+    """
+    # KOSDAQ은 별도 스크린 코드 사용
+    scr_code = "261" if market == "Q" else "211"
     headers = {
         "Authorization": f"Bearer {token}",
         "appkey": APP_KEY, "appsecret": APP_SECRET,
@@ -458,12 +462,12 @@ def fetch_market_ranking(token: str, market: str, rank_type: str) -> list:
     }
     params = {
         "fid_rsfl_rate2": "", "fid_cond_mrkt_div_code": market,
-        "fid_cond_scr_div_code": "211", "fid_input_iscd": "0000",
+        "fid_cond_scr_div_code": scr_code, "fid_input_iscd": "0000",
         "fid_rank_sort_cls_code": "0" if rank_type == "up" else "1",
-        "fid_input_cnt_1": "0", "fid_prc_cls_code": "0",
+        "fid_input_cnt_1": "0", "fid_prc_cls_code": "1",
         "fid_input_price_1": "", "fid_input_price_2": "",
-        "fid_vol_cnt": "", "fid_trgt_cls_code": "111111111",
-        "fid_trgt_exls_cls_code": "000000", "fid_div_cls_code": "0",
+        "fid_vol_cnt": "", "fid_trgt_cls_code": "0",
+        "fid_trgt_exls_cls_code": "0", "fid_div_cls_code": "0",
         "fid_rsfl_rate1": "",
     }
     try:
@@ -483,13 +487,15 @@ def fetch_market_ranking(token: str, market: str, rank_type: str) -> list:
 
 def fetch_volume_ranking(token: str, market: str) -> list:
     """거래량 순위 조회"""
+    # KOSDAQ은 별도 스크린 코드 사용
+    scr_code = "20172" if market == "Q" else "20171"
     headers = {
         "Authorization": f"Bearer {token}",
         "appkey": APP_KEY, "appsecret": APP_SECRET,
-        "tr_id": "FHPST01700000", "custtype": "P",
+        "tr_id": "FHPST01710000", "custtype": "P",
     }
     params = {
-        "fid_cond_mrkt_div_code": market, "fid_cond_scr_div_code": "20171",
+        "fid_cond_mrkt_div_code": market, "fid_cond_scr_div_code": scr_code,
         "fid_input_iscd": "0000", "fid_rank_sort_cls_code": "0",
         "fid_input_cnt_1": "0", "fid_prc_cls_code": "0",
         "fid_input_price_1": "", "fid_input_price_2": "",

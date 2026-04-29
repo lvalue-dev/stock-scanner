@@ -926,10 +926,13 @@ function watchlistFormHtml() {
   return `<div style="background:var(--bg2);border-radius:10px;padding:12px;margin-top:12px">
     <div style="font-size:13px;color:var(--pu);margin-bottom:8px;font-weight:600">➕ 관심종목 추가 (최대 40종목)</div>
     <div style="display:flex;gap:6px;flex-wrap:wrap">
-      <input id="ws-code" placeholder="종목코드 (예: 005930)" style="flex:1;min-width:120px;padding:9px 12px;background:var(--bg3);border:1px solid var(--bd);border-radius:8px;color:var(--tx);font-size:13px">
-      <input id="ws-name" placeholder="종목명" style="flex:1;min-width:100px;padding:9px 12px;background:var(--bg3);border:1px solid var(--bd);border-radius:8px;color:var(--tx);font-size:13px">
+      <input id="ws-query" placeholder="종목코드 또는 종목명 (예: 005930, 삼성전자)"
+        style="flex:1;min-width:160px;padding:9px 12px;background:var(--bg3);border:1px solid var(--bd);border-radius:8px;color:var(--tx);font-size:13px"
+        oninput="wsShowSuggestions(this.value)"
+        onkeydown="if(event.key==='Enter'){event.preventDefault();addToWatchlist()}">
       <button class="btn btn-green btn-sm" onclick="addToWatchlist()" style="white-space:nowrap">추가</button>
     </div>
+    <div id="ws-suggestions"></div>
   </div>`;
 }
 
@@ -964,16 +967,54 @@ function renderWatchlist() {
   }).join('') + watchlistFormHtml();
 }
 
-function addToWatchlist() {
-  const code = (document.getElementById('ws-code').value || '').trim();
-  const name = (document.getElementById('ws-name').value || '').trim() || code;
-  if (!code || !/^\d{6}$/.test(code)) { alert('6자리 종목코드를 입력하세요'); return; }
+function wsLookupByName(query) {
+  const q = query.trim().toLowerCase();
+  if (!q) return [];
+  const seen = {};
+  const pool = (allStocks || []).concat(results.signals || []);
+  const deduped = pool.filter(s => s.code && s.name && !seen[s.code] && (seen[s.code] = 1));
+  const exact = deduped.filter(s => s.name.toLowerCase() === q);
+  if (exact.length) return exact;
+  return deduped.filter(s => s.name.toLowerCase().includes(q));
+}
+
+function wsShowSuggestions(val) {
+  const el = document.getElementById('ws-suggestions');
+  if (!el) return;
+  const q = (val || '').trim();
+  if (!q || /^\d{1,6}$/.test(q)) { el.innerHTML = ''; return; }
+  const matches = wsLookupByName(q);
+  if (!matches.length) { el.innerHTML = ''; return; }
+  el.innerHTML = `<div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:7px">` +
+    matches.slice(0, 12).map(s =>
+      `<button onclick="wsAddDirect('${s.code}','${s.name.replace(/'/g,"&#39;")}')"
+        style="padding:5px 10px;background:var(--bg3);border:1px solid var(--bd);border-radius:6px;color:var(--tx);font-size:12px;cursor:pointer">
+        ${s.name} <span style="color:var(--tx2)">${s.code}</span>
+       </button>`
+    ).join('') + `</div>`;
+}
+
+function wsAddDirect(code, name) {
   if (watchlist.find(w => w.code === code)) { alert('이미 추가된 종목입니다'); return; }
   if (watchlist.length >= 40) { alert('관심종목은 최대 40개까지 가능합니다'); return; }
   watchlist.push({ code, name });
   localStorage.setItem('mkt_watchlist', JSON.stringify(watchlist));
   wsSubscribe(code);
   renderWatchlist();
+}
+
+function addToWatchlist() {
+  const q = (document.getElementById('ws-query')?.value || '').trim();
+  if (!q) { alert('종목코드 또는 종목명을 입력하세요'); return; }
+  if (/^\d{6}$/.test(q)) {
+    const found = (allStocks || []).find(s => s.code === q) || (results.signals || []).find(s => s.code === q);
+    wsAddDirect(q, found ? found.name : q);
+    return;
+  }
+  const matches = wsLookupByName(q);
+  if (!matches.length) { alert('종목을 찾을 수 없습니다\n6자리 종목코드로 입력해보세요'); return; }
+  if (matches.length === 1) { wsAddDirect(matches[0].code, matches[0].name); return; }
+  wsShowSuggestions(q);
 }
 
 function removeFromWatchlist(code) {
