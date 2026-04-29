@@ -942,17 +942,30 @@ function renderWatchlist() {
     el.innerHTML = '<div class="empty" style="margin-bottom:0">관심종목이 없습니다</div>' + watchlistFormHtml();
     return;
   }
-  el.innerHTML = watchlist.map(item => {
-    const rt = wsPrices[item.code];
+  const noKey = !rtAppKey || !rtAppSecret;
+  const header = noKey
+    ? `<div style="font-size:12px;color:var(--tx2);background:var(--bg2);border-radius:8px;padding:8px 12px;margin-bottom:8px">
+        💡 실시간 체결가는 설정 탭에서 API 키 입력 후 사용 가능합니다
+       </div>` : '';
+  el.innerHTML = header + watchlist.map(item => {
+    // WebSocket 체결가 우선, 없으면 REST 폴링 가격 fallback
+    const ws = wsPrices[item.code];
+    const rest = rtPrices[item.code];
+    const rt = ws || (rest ? { price: rest.price, change: rest.change, changePct: rest.changePct, volume: null, time: null } : null);
+    const isLive = !!ws;
+    const isRest = !ws && !!rest;
     const up = rt && rt.changePct > 0, dn = rt && rt.changePct < 0;
     const clr = up ? 'var(--rd)' : dn ? '#4488ff' : 'var(--tx2)';
     const arrow = up ? '▲' : dn ? '▼' : '—';
+    const badge = isLive ? '<span style="font-size:10px;color:#00cc66;margin-left:4px">● LIVE</span>'
+                : isRest ? '<span style="font-size:10px;color:#ffaa00;margin-left:4px">● 지연</span>'
+                : '<span style="font-size:10px;color:var(--tx2);margin-left:4px">대기중</span>';
     return `<div class="all-item" style="border-left-color:${rt ? clr : 'var(--bd)'}">
       <div style="display:flex;justify-content:space-between;align-items:center">
         <div>
           <span style="font-weight:700;font-size:14px">${item.name}</span>
           <span style="color:var(--tx2);font-size:11px;margin-left:4px">${item.code}</span>
-          ${rt ? '<span style="font-size:10px;color:#00cc66;margin-left:4px">● LIVE</span>' : '<span style="font-size:10px;color:var(--tx2);margin-left:4px">대기중</span>'}
+          ${badge}
         </div>
         <div style="display:flex;align-items:center;gap:10px">
           <div style="text-align:right">
@@ -962,7 +975,7 @@ function renderWatchlist() {
           <button class="btn btn-red btn-sm" onclick="removeFromWatchlist('${item.code}')">✕</button>
         </div>
       </div>
-      ${rt ? `<div style="font-size:11px;color:var(--tx2);margin-top:3px">거래량 ${rt.volume.toLocaleString()} · ${rt.time.replace(/(\d{2})(\d{2})(\d{2})/,'$1:$2:$3')}</div>` : ''}
+      ${ws?.volume != null ? `<div style="font-size:11px;color:var(--tx2);margin-top:3px">거래량 ${ws.volume.toLocaleString()} · ${ws.time.replace(/(\d{2})(\d{2})(\d{2})/,'$1:$2:$3')}</div>` : ''}
     </div>`;
   }).join('') + watchlistFormHtml();
 }

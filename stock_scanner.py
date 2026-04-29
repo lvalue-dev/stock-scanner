@@ -577,16 +577,35 @@ def save_portfolio_json(price_map: dict, now: datetime.datetime) -> None:
 
 
 def send_discord_summary(hits: list, now: datetime.datetime) -> None:
-    if not DISCORD_URL or not hits:
+    if not DISCORD_URL:
         return
-    lines = [f"• {n} ({c})  점수 {r['score']}  {r['prediction'].split()[0]}  목표 {r.get('target_price',0):,}원"
-             for c, n, r in hits[:10]]
-    payload = {"embeds": [{"title": f"📊 [{now:%m/%d %H:%M}] 스캔 완료 — 신호 {len(hits)}개",
-                           "color": 0x8080FF,
-                           "description": "\n".join(lines)}]}
+    buy  = [h for h in hits if h[2]["score"] >= 65]
+    watch = [h for h in hits if 55 <= h[2]["score"] < 65]
+    sell = [h for h in hits if h[2]["score"] < 50]
+
+    def fmt(h):
+        c, n, r = h
+        up = r.get("upside_pct", 0)
+        arrow = "🟢" if r["score"] >= 65 else "🔴" if r["score"] < 50 else "👀"
+        return f"{arrow} **{n}** {r['price']:,}원  목표 {r.get('target_price',0):,}원 ({up:+.1f}%)  [{r['score']}점]"
+
+    sections = []
+    if buy:
+        sections.append("**📈 강한 매수 신호**\n" + "\n".join(fmt(h) for h in buy[:5]))
+    if watch:
+        sections.append("**👀 관망**\n" + "\n".join(fmt(h) for h in watch[:5]))
+    if sell:
+        sections.append("**📉 매도 신호**\n" + "\n".join(fmt(h) for h in sell[:3]))
+
+    if not sections:
+        return
+
+    desc = "\n\n".join(sections) + "\n\n_자세한 정보는 웹앱에서 확인하세요_"
+    payload = {"embeds": [{"title": f"📊 [{now:%m/%d %H:%M}] 스캔 완료 — 신호 {len(hits)}개 / {len(STOCKS)}종목",
+                           "color": 0x8080FF, "description": desc}]}
     res = requests.post(DISCORD_URL, json=payload, timeout=10)
     if not res.ok:
-        print(f"  ⚠️  요약 Discord 실패 [{res.status_code}]")
+        print(f"  ⚠️  Discord 실패 [{res.status_code}]")
 
 
 # ── Main ────────────────────────────────────────────────────────────────────
@@ -609,7 +628,6 @@ def main() -> None:
                 print(f"🎯 점수={result['score']:3d} {stars}  {debug}  {', '.join(result['signals'][:3])}")
                 hits.append((code, name, result))
                 price_map[code] = result["price"]
-                send_discord(code, name, result)
             else:
                 # 가격은 기록 (포트폴리오 현재가 업데이트용)
                 raw = data.get("output2", [])
