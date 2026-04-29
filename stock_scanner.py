@@ -449,6 +449,86 @@ def append_signals_log(hits: list, now: datetime.datetime) -> None:
     print("📄 docs/data/signals_log.json 업데이트됨")
 
 
+def fetch_market_ranking(token: str, market: str, rank_type: str) -> list:
+    """등락률 순위 조회 (rank_type: 'up'=상승, 'dn'=하락)"""
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "appkey": APP_KEY, "appsecret": APP_SECRET,
+        "tr_id": "FHPST01710000", "custtype": "P",
+    }
+    params = {
+        "fid_rsfl_rate2": "", "fid_cond_mrkt_div_code": market,
+        "fid_cond_scr_div_code": "211", "fid_input_iscd": "0000",
+        "fid_rank_sort_cls_code": "0" if rank_type == "up" else "1",
+        "fid_input_cnt_1": "0", "fid_prc_cls_code": "1",
+        "fid_input_price_1": "", "fid_input_price_2": "",
+        "fid_vol_cnt": "", "fid_trgt_cls_code": "0",
+        "fid_trgt_exls_cls_code": "0", "fid_div_cls_code": "0",
+        "fid_rsfl_rate1": "",
+    }
+    try:
+        r = requests.get(f"{API_BASE}/uapi/domestic-stock/v1/ranking/fluctuation",
+                         headers=headers, params=params, timeout=10)
+        d = r.json()
+        if d.get("rt_cd") != "0":
+            print(f"  ⚠️  랭킹({market}/{rank_type}) {d.get('msg1')}")
+            return []
+        return d.get("output", [])[:30]
+    except Exception as e:
+        print(f"  ⚠️  랭킹({market}/{rank_type}) 오류: {e}")
+        return []
+
+
+def fetch_volume_ranking(token: str, market: str) -> list:
+    """거래량 순위 조회"""
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "appkey": APP_KEY, "appsecret": APP_SECRET,
+        "tr_id": "FHPST01710000", "custtype": "P",
+    }
+    params = {
+        "fid_cond_mrkt_div_code": market, "fid_cond_scr_div_code": "20171",
+        "fid_input_iscd": "0000", "fid_rank_sort_cls_code": "0",
+        "fid_input_cnt_1": "0", "fid_prc_cls_code": "0",
+        "fid_input_price_1": "", "fid_input_price_2": "",
+        "fid_vol_cnt": "150000", "fid_trgt_cls_code": "111111111",
+        "fid_trgt_exls_cls_code": "000000", "fid_div_cls_code": "0",
+        "fid_input_date_1": "",
+    }
+    try:
+        r = requests.get(f"{API_BASE}/uapi/domestic-stock/v1/ranking/volume",
+                         headers=headers, params=params, timeout=10)
+        d = r.json()
+        if d.get("rt_cd") != "0":
+            print(f"  ⚠️  거래량순위({market}) {d.get('msg1')}")
+            return []
+        return d.get("output", [])[:30]
+    except Exception as e:
+        print(f"  ⚠️  거래량순위({market}) 오류: {e}")
+        return []
+
+
+def save_market_ranking_json(token: str, now: datetime.datetime) -> None:
+    """KOSPI/KOSDAQ 상승·하락·거래량 순위 저장"""
+    print("📊 시장 랭킹 조회 중...")
+    ranking = {
+        "update_time": now.strftime("%Y-%m-%d %H:%M"),
+        "kospi": {
+            "up":  fetch_market_ranking(token, "J", "up"),
+            "dn":  fetch_market_ranking(token, "J", "dn"),
+            "vol": fetch_volume_ranking(token, "J"),
+        },
+        "kosdaq": {
+            "up":  fetch_market_ranking(token, "Q", "up"),
+            "dn":  fetch_market_ranking(token, "Q", "dn"),
+            "vol": fetch_volume_ranking(token, "Q"),
+        },
+    }
+    with open("docs/data/market_ranking.json", "w", encoding="utf-8") as f:
+        json.dump(ranking, f, ensure_ascii=False, indent=2)
+    print("📄 docs/data/market_ranking.json 저장됨")
+
+
 def save_portfolio_json(price_map: dict, now: datetime.datetime) -> None:
     os.makedirs("docs/data", exist_ok=True)
     try:
@@ -540,6 +620,7 @@ def main() -> None:
     save_results_json(hits, now)
     append_signals_log(hits, now)
     save_portfolio_json(price_map, now)
+    save_market_ranking_json(token, now)
     send_discord_summary(hits, now)
 
 

@@ -364,9 +364,21 @@ export default function StockScanner() {
 
   const getToken = async () => {
     const now = Date.now();
+    // 1) 메모리 캐시
     if (tokenCache.current.value && now < tokenCache.current.expiry) {
       return tokenCache.current.value;
     }
+    // 2) localStorage 캐시 (같은 appKey로 발급된 토큰만 재사용)
+    try {
+      const lsToken  = localStorage.getItem('ki_token');
+      const lsExpiry = parseInt(localStorage.getItem('ki_token_exp') || '0');
+      const lsKey    = localStorage.getItem('ki_token_key');
+      if (lsToken && now < lsExpiry && lsKey === appKey) {
+        tokenCache.current = { value: lsToken, expiry: lsExpiry };
+        return lsToken;
+      }
+    } catch {}
+    // 3) 신규 발급
     const res = await fetch(`${API_BASE}/oauth2/tokenP`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -379,7 +391,13 @@ export default function StockScanner() {
     if (!res.ok) throw new Error(`토큰 HTTP ${res.status}`);
     const d = await res.json();
     if (!d.access_token) throw new Error("토큰 없음: " + JSON.stringify(d));
-    tokenCache.current = { value: d.access_token, expiry: now + 23 * 3600 * 1000 };
+    const expiry = now + 23 * 3600 * 1000;
+    tokenCache.current = { value: d.access_token, expiry };
+    try {
+      localStorage.setItem('ki_token',     d.access_token);
+      localStorage.setItem('ki_token_exp', String(expiry));
+      localStorage.setItem('ki_token_key', appKey);
+    } catch {}
     return d.access_token;
   };
 

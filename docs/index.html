@@ -305,7 +305,17 @@ function setRtStatus(msg) {
 
 async function getRtToken() {
   const now = Date.now();
+  // 1) 메모리 캐시
   if (rtToken && now < rtTokenExpiry) return rtToken;
+  // 2) localStorage 캐시 (같은 appKey로 발급된 토큰만 재사용)
+  const lsToken  = localStorage.getItem('ki_token');
+  const lsExpiry = parseInt(localStorage.getItem('ki_token_exp') || '0');
+  const lsKey    = localStorage.getItem('ki_token_key');
+  if (lsToken && now < lsExpiry && lsKey === rtAppKey) {
+    rtToken = lsToken; rtTokenExpiry = lsExpiry;
+    return rtToken;
+  }
+  // 3) 신규 발급
   const res = await fetch(`${KI_API}/oauth2/tokenP`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -316,6 +326,9 @@ async function getRtToken() {
   if (!d.access_token) throw new Error('토큰 발급 실패');
   rtToken = d.access_token;
   rtTokenExpiry = now + 23 * 3600 * 1000;
+  localStorage.setItem('ki_token',     rtToken);
+  localStorage.setItem('ki_token_exp', String(rtTokenExpiry));
+  localStorage.setItem('ki_token_key', rtAppKey);
   return rtToken;
 }
 
@@ -375,9 +388,15 @@ async function saveAndStartLive() {
   const key = (document.getElementById('rt-key').value || '').trim();
   const sec = (document.getElementById('rt-sec').value || '').trim();
   if (!key || !sec) { alert('App Key와 Secret을 입력하세요'); return; }
+  // 키가 바뀐 경우 토큰 캐시 무효화
+  if (key !== rtAppKey) {
+    rtToken = null; rtTokenExpiry = 0;
+    wsApprovalKey = null;
+    ['ki_token','ki_token_exp','ki_token_key','ki_approval','ki_approval_exp','ki_approval_key']
+      .forEach(k => localStorage.removeItem(k));
+  }
   rtAppKey = key;
   rtAppSecret = sec;
-  rtToken = null; // 키 변경 시 토큰 재발급
   localStorage.setItem('rt_appkey', key);
   localStorage.setItem('rt_secret', sec);
 
@@ -752,58 +771,13 @@ let mktMarket = 'J';   // J=KOSPI, Q=KOSDAQ
 let mktInterval = null;
 
 // ── 랭킹 REST ────────────────────────────────────────────────────────────────
-async function fetchRanking(type) {
-  if (!rtAppKey || !rtAppSecret) return null;
-  const token = await getRtToken();
-  let endpoint, params;
-  if (type === 'vol') {
-    endpoint = '/uapi/domestic-stock/v1/ranking/volume';
-    params = new URLSearchParams({
-      fid_cond_mrkt_div_code: mktMarket,
-      fid_cond_scr_div_code: '20171',
-      fid_input_iscd: '0000',
-      fid_rank_sort_cls_code: '0',
-      fid_input_cnt_1: '0',
-      fid_prc_cls_code: '0',
-      fid_input_price_1: '',
-      fid_input_price_2: '',
-      fid_vol_cnt: '150000',
-      fid_trgt_cls_code: '111111111',
-      fid_trgt_exls_cls_code: '000000',
-      fid_div_cls_code: '0',
-      fid_input_date_1: '',
-    });
-  } else {
-    endpoint = '/uapi/domestic-stock/v1/ranking/fluctuation';
-    params = new URLSearchParams({
-      fid_rsfl_rate2: '',
-      fid_cond_mrkt_div_code: mktMarket,
-      fid_cond_scr_div_code: '211',
-      fid_input_iscd: '0000',
-      fid_rank_sort_cls_code: type === 'dn' ? '1' : '0',
-      fid_input_cnt_1: '0',
-      fid_prc_cls_code: '1',
-      fid_input_price_1: '',
-      fid_input_price_2: '',
-      fid_vol_cnt: '',
-      fid_trgt_cls_code: '0',
-      fid_trgt_exls_cls_code: '0',
-      fid_div_cls_code: '0',
-      fid_rsfl_rate1: '',
-    });
-  }
-  const res = await fetch(`${KI_API}${endpoint}?${params}`, {
-    headers: {
-      authorization: `Bearer ${token}`,
-      appkey: rtAppKey,
-      appsecret: rtAppSecret,
-      tr_id: 'FHPST01710000',
-      custtype: 'P',
-    },
-  });
-  const data = await res.json();
-  if (data.rt_cd !== '0') throw new Error(data.msg1 || 'API 오류');
-  return data.output || [];
+// 랭킹은 Python(GitHub Actions)이 생성한 JSON에서 읽음 — CORS 우회
+let mktRankingCache = null;
+async function fetchRankingFromJson() {
+  if (mktRankingCache) return mktRankingCache;
+  const data = await fetchJSON('data/market_ranking.json');
+  if (data) mktRankingCache = data;
+  return data;
 }
 
 function renderRanking(list) {
@@ -853,6 +827,15 @@ function setMktStatus(msg) {
 
 async function getApprovalKey() {
   if (wsApprovalKey) return wsApprovalKey;
+  // localStorage 캐시
+  const lsKey    = localStorage.getItem('ki_approval');
+  const lsExpiry = parseInt(localStorage.getItem('ki_approval_exp') || '0');
+  const lsAppKey = localStorage.getItem('ki_approval_key');
+  if (lsKey && Date.now() < lsExpiry && lsAppKey === rtAppKey) {
+    wsApprovalKey = lsKey;
+    return wsApprovalKey;
+  }
+  // 신규 발급
   const res = await fetch(`${KI_API}/oauth2/Approval`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -861,6 +844,10 @@ async function getApprovalKey() {
   const d = await res.json();
   if (!d.approval_key) throw new Error('Approval key 발급 실패');
   wsApprovalKey = d.approval_key;
+  const exp = Date.now() + 23 * 3600 * 1000;
+  localStorage.setItem('ki_approval',     wsApprovalKey);
+  localStorage.setItem('ki_approval_exp', String(exp));
+  localStorage.setItem('ki_approval_key', rtAppKey);
   return wsApprovalKey;
 }
 
@@ -1015,30 +1002,35 @@ function setMktMarket(code, btn) {
 }
 
 async function loadMarketTab() {
-  if (!rtAppKey || !rtAppSecret) {
-    document.getElementById('mkt-content').innerHTML =
-      '<div class="empty">설정 탭에서 한국투자 API 키를 먼저 입력하세요</div>';
-    return;
-  }
   if (mktTab === 'watch') {
     renderWatchlist();
-    if (!wsConn || wsConn.readyState !== WebSocket.OPEN) await connectWebSocket();
+    if (!wsConn || wsConn.readyState !== WebSocket.OPEN) {
+      if (!rtAppKey || !rtAppSecret) {
+        setMktStatus('관심종목 실시간은 설정 탭에서 API 키 입력 후 사용 가능합니다');
+      } else {
+        await connectWebSocket();
+      }
+    }
     return;
   }
+  // 상승/하락/거래량 — JSON 파일에서 읽기
   document.getElementById('mkt-content').innerHTML = '<div class="empty">로딩 중...</div>';
-  try {
-    const list = await fetchRanking(mktTab);
-    renderRanking(list);
-    setMktStatus(`업데이트: ${new Date().toLocaleTimeString('ko-KR')}`);
-  } catch (e) {
-    document.getElementById('mkt-content').innerHTML = `<div class="empty">오류: ${e.message}</div>`;
+  const data = await fetchRankingFromJson();
+  if (!data) {
+    document.getElementById('mkt-content').innerHTML =
+      '<div class="empty">데이터 없음<br><small style="color:var(--tx2)">GitHub Actions 스캔 후 표시됩니다 (장중 30분마다)</small></div>';
+    return;
   }
+  const market = mktMarket === 'J' ? 'kospi' : 'kosdaq';
+  renderRanking(data[market]?.[mktTab] || []);
+  setMktStatus(`GitHub Actions 업데이트: ${data.update_time}`);
 }
 
 function startMarketPolling() {
+  mktRankingCache = null; // 탭 진입 시 캐시 초기화 → 최신 JSON 로드
   loadMarketTab();
   if (mktInterval) clearInterval(mktInterval);
-  mktInterval = setInterval(() => { if (mktTab !== 'watch') loadMarketTab(); }, 30000);
+  mktInterval = setInterval(() => { if (mktTab !== 'watch') loadMarketTab(); }, 300000); // 5분마다
 }
 
 function stopMarketPolling() {
