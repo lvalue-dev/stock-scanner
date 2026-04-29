@@ -398,7 +398,7 @@ def send_discord(code: str, name: str, a: dict) -> None:
         fields.append({"name": "🔶 저항구간", "value": " / ".join(pf(r) for r in a["resistance"]), "inline": True})
 
     payload = {"embeds": [{"title": f"📊 {name} ({code})", "color": color,
-                           "fields": fields, "timestamp": datetime.datetime.utcnow().isoformat()}]}
+                           "fields": fields, "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat()}]}
     res = requests.post(DISCORD_URL, json=payload, timeout=10)
     if not res.ok:
         print(f"  ⚠️  Discord 실패 [{res.status_code}]: {res.text[:150]}")
@@ -486,57 +486,53 @@ def fetch_market_ranking(token: str, market: str, rank_type: str) -> list:
         return []
 
 
-def fetch_volume_ranking(token: str, market: str) -> list:
-    """거래량 순위 조회
-    market: 'J'=KOSPI, 'K'=KOSDAQ
-    """
+def fetch_volume_ranking(token: str) -> list:
+    """거래량 순위 — /ranking/fluctuation 엔드포인트를 거래량 정렬(sort_cls=2)로 재사용"""
     headers = {
         "Authorization": f"Bearer {token}",
         "appkey": APP_KEY, "appsecret": APP_SECRET,
         "tr_id": "FHPST01710000", "custtype": "P",
     }
     params = {
-        "fid_cond_mrkt_div_code": market, "fid_cond_scr_div_code": "20171",
-        "fid_input_iscd": "0000", "fid_rank_sort_cls_code": "0",
+        "fid_rsfl_rate2": "", "fid_cond_mrkt_div_code": "J",
+        "fid_cond_scr_div_code": "20171", "fid_input_iscd": "0000",
+        "fid_rank_sort_cls_code": "2",
         "fid_input_cnt_1": "0", "fid_prc_cls_code": "0",
         "fid_input_price_1": "", "fid_input_price_2": "",
-        "fid_vol_cnt": "150000", "fid_trgt_cls_code": "111111111",
+        "fid_vol_cnt": "", "fid_trgt_cls_code": "111111111",
         "fid_trgt_exls_cls_code": "000000", "fid_div_cls_code": "0",
-        "fid_input_date_1": "",
+        "fid_rsfl_rate1": "",
     }
     try:
-        r = requests.get(f"{API_BASE}/uapi/domestic-stock/v1/ranking/volume",
+        r = requests.get(f"{API_BASE}/uapi/domestic-stock/v1/ranking/fluctuation",
                          headers=headers, params=params, timeout=10)
         if not r.text.strip():
-            print(f"  ⚠️  거래량순위({market}) 빈 응답 HTTP {r.status_code}")
+            print(f"  ⚠️  거래량순위 빈 응답 HTTP {r.status_code}")
             return []
         d = r.json()
         if d.get("rt_cd") != "0":
-            print(f"  ⚠️  거래량순위({market}) rt_cd={d.get('rt_cd')} msg={d.get('msg1')}")
+            print(f"  ⚠️  거래량순위 rt_cd={d.get('rt_cd')} msg={d.get('msg1')}")
             return []
         result = d.get("output", [])[:30]
-        print(f"  ✅  거래량순위({market}) {len(result)}개")
+        print(f"  ✅  거래량순위 {len(result)}개")
         return result
     except Exception as e:
-        print(f"  ⚠️  거래량순위({market}) 오류: {e}")
+        print(f"  ⚠️  거래량순위 오류: {e}")
         return []
 
 
 def save_market_ranking_json(token: str, now: datetime.datetime) -> None:
-    """KOSPI/KOSDAQ 상승·하락·거래량 순위 저장"""
+    """KOSPI/KOSDAQ 상승·하락·거래량 순위 저장
+    KOSDAQ 별도 API가 지원되지 않아 전체시장(J) 기준으로 통합 제공
+    """
     print("📊 시장 랭킹 조회 중...")
+    up  = fetch_market_ranking(token, "J", "up")
+    dn  = fetch_market_ranking(token, "J", "dn")
+    vol = fetch_volume_ranking(token)
     ranking = {
         "update_time": now.strftime("%Y-%m-%d %H:%M"),
-        "kospi": {
-            "up":  fetch_market_ranking(token, "J", "up"),
-            "dn":  fetch_market_ranking(token, "J", "dn"),
-            "vol": fetch_volume_ranking(token, "J"),
-        },
-        "kosdaq": {
-            "up":  fetch_market_ranking(token, "K", "up"),
-            "dn":  fetch_market_ranking(token, "K", "dn"),
-            "vol": fetch_volume_ranking(token, "K"),
-        },
+        "kospi":  {"up": up,  "dn": dn,  "vol": vol},
+        "kosdaq": {"up": up,  "dn": dn,  "vol": vol},
     }
     with open("docs/data/market_ranking.json", "w", encoding="utf-8") as f:
         json.dump(ranking, f, ensure_ascii=False, indent=2)
