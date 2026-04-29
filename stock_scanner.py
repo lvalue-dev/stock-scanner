@@ -460,10 +460,10 @@ def fetch_market_ranking(token: str, market: str, rank_type: str) -> list:
         "fid_rsfl_rate2": "", "fid_cond_mrkt_div_code": market,
         "fid_cond_scr_div_code": "211", "fid_input_iscd": "0000",
         "fid_rank_sort_cls_code": "0" if rank_type == "up" else "1",
-        "fid_input_cnt_1": "0", "fid_prc_cls_code": "1",
+        "fid_input_cnt_1": "0", "fid_prc_cls_code": "0",
         "fid_input_price_1": "", "fid_input_price_2": "",
-        "fid_vol_cnt": "", "fid_trgt_cls_code": "0",
-        "fid_trgt_exls_cls_code": "0", "fid_div_cls_code": "0",
+        "fid_vol_cnt": "", "fid_trgt_cls_code": "111111111",
+        "fid_trgt_exls_cls_code": "000000", "fid_div_cls_code": "0",
         "fid_rsfl_rate1": "",
     }
     try:
@@ -471,11 +471,13 @@ def fetch_market_ranking(token: str, market: str, rank_type: str) -> list:
                          headers=headers, params=params, timeout=10)
         d = r.json()
         if d.get("rt_cd") != "0":
-            print(f"  ⚠️  랭킹({market}/{rank_type}) {d.get('msg1')}")
+            print(f"  ⚠️  등락률순위({market}/{rank_type}) rt_cd={d.get('rt_cd')} msg={d.get('msg1')}")
             return []
-        return d.get("output", [])[:30]
+        result = d.get("output", [])[:30]
+        print(f"  ✅  등락률순위({market}/{rank_type}) {len(result)}개")
+        return result
     except Exception as e:
-        print(f"  ⚠️  랭킹({market}/{rank_type}) 오류: {e}")
+        print(f"  ⚠️  등락률순위({market}/{rank_type}) 오류: {e}")
         return []
 
 
@@ -484,7 +486,7 @@ def fetch_volume_ranking(token: str, market: str) -> list:
     headers = {
         "Authorization": f"Bearer {token}",
         "appkey": APP_KEY, "appsecret": APP_SECRET,
-        "tr_id": "FHPST01710000", "custtype": "P",
+        "tr_id": "FHPST01700000", "custtype": "P",
     }
     params = {
         "fid_cond_mrkt_div_code": market, "fid_cond_scr_div_code": "20171",
@@ -500,9 +502,11 @@ def fetch_volume_ranking(token: str, market: str) -> list:
                          headers=headers, params=params, timeout=10)
         d = r.json()
         if d.get("rt_cd") != "0":
-            print(f"  ⚠️  거래량순위({market}) {d.get('msg1')}")
+            print(f"  ⚠️  거래량순위({market}) rt_cd={d.get('rt_cd')} msg={d.get('msg1')}")
             return []
-        return d.get("output", [])[:30]
+        result = d.get("output", [])[:30]
+        print(f"  ✅  거래량순위({market}) {len(result)}개")
+        return result
     except Exception as e:
         print(f"  ⚠️  거래량순위({market}) 오류: {e}")
         return []
