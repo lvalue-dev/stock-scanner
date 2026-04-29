@@ -132,7 +132,9 @@ label{display:block;font-size:12px;color:var(--tx2);margin-bottom:4px}
 <!-- App -->
 <div id="app">
   <header>
-    <h1>📈 주식 스캐너</h1>
+    <h1>📈 주식 스캐너
+      <span id="live-badge" style="display:none;font-size:11px;background:#00cc6633;color:#00cc66;padding:2px 8px;border-radius:10px;font-weight:500;vertical-align:middle;margin-left:6px">● LIVE</span>
+    </h1>
     <div style="display:flex;align-items:center;gap:10px">
       <div class="meta">
         <div>마지막 스캔</div>
@@ -224,6 +226,16 @@ label{display:block;font-size:12px;color:var(--tx2);margin-bottom:4px}
       </div>
     </div>
     <div class="setting-group">
+      <h3>📡 실시간 시세 (한국투자 Open API)</h3>
+      <div class="form-gap"><label>App Key</label><input id="rt-key" type="password" placeholder="한국투자 App Key" autocomplete="off"></div>
+      <div class="form-gap"><label>App Secret</label><input id="rt-sec" type="password" placeholder="한국투자 App Secret" autocomplete="off"></div>
+      <div style="display:flex;gap:8px;margin-top:4px">
+        <button class="btn btn-green btn-sm" id="rt-start-btn" onclick="saveAndStartLive()">▶ 저장 후 실시간 시작</button>
+        <button class="btn btn-red btn-sm" id="rt-stop-btn" onclick="stopLive()" style="display:none">⏹ 중단</button>
+      </div>
+      <div id="rt-status" style="font-size:11px;color:var(--tx2);margin-top:8px;min-height:16px"></div>
+    </div>
+    <div class="setting-group">
       <h3>ℹ️ 정보</h3>
       <div style="font-size:12px;color:var(--tx2);line-height:1.9">
         • GitHub Actions가 장중 30분마다 자동 스캔<br>
@@ -242,6 +254,139 @@ let allStocks = [];
 let histLog = [];
 let portfolio = JSON.parse(localStorage.getItem('pf_holdings') || '[]');
 let serverPortfolio = null;
+
+// ── 실시간 시세 ───────────────────────────────────────────────────────────────
+const KI_API = 'https://openapi.koreainvestment.com:9443';
+const RT_INTERVAL = 30000; // 30초
+
+let rtAppKey = '';
+let rtAppSecret = '';
+let rtToken = null;
+let rtTokenExpiry = 0;
+let rtPrices = {};      // { code: { price, change, changePct, sign } }
+let rtInterval = null;
+let rtStop = false;
+
+function isMarketOpen() {
+  const kst = new Date(Date.now() + 9 * 3600 * 1000);
+  const day = kst.getUTCDay();
+  const t = kst.getUTCHours() * 100 + kst.getUTCMinutes();
+  return day >= 1 && day <= 5 && t >= 900 && t < 1531;
+}
+
+function setRtStatus(msg) {
+  const el = document.getElementById('rt-status');
+  if (el) el.textContent = msg;
+}
+
+async function getRtToken() {
+  const now = Date.now();
+  if (rtToken && now < rtTokenExpiry) return rtToken;
+  const res = await fetch(`${KI_API}/oauth2/tokenP`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ grant_type: 'client_credentials', appkey: rtAppKey, appsecret: rtAppSecret }),
+  });
+  if (!res.ok) throw new Error(`토큰 HTTP ${res.status}`);
+  const d = await res.json();
+  if (!d.access_token) throw new Error('토큰 발급 실패');
+  rtToken = d.access_token;
+  rtTokenExpiry = now + 23 * 3600 * 1000;
+  return rtToken;
+}
+
+async function pollLivePrices() {
+  setRtStatus('조회 중...');
+  try {
+    const token = await getRtToken();
+    // signals + allStocks 합집합 코드 수집
+    const codeSet = new Set();
+    (results.signals || []).forEach(s => codeSet.add(s.code));
+    (allStocks || []).forEach(s => codeSet.add(s.code));
+    const codes = [...codeSet];
+
+    for (const code of codes) {
+      if (rtStop) break;
+      try {
+        const p = new URLSearchParams({ fid_cond_mrkt_div_code: 'J', fid_input_iscd: code });
+        const res = await fetch(`${KI_API}/uapi/domestic-stock/v1/quotations/inquire-price?${p}`, {
+          headers: {
+            authorization: `Bearer ${token}`,
+            appkey: rtAppKey,
+            appsecret: rtAppSecret,
+            tr_id: 'FHKST01010100',
+            custtype: 'P',
+          },
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.rt_cd === '0') {
+            const out = data.output;
+            rtPrices[code] = {
+              price: parseInt(out.stck_prpr),
+              change: parseInt(out.prdy_vrss),
+              changePct: parseFloat(out.prdy_ctrt),
+              sign: out.prdy_vrss_sign, // 1:상한 2:상승 3:보합 4:하한 5:하락
+            };
+          }
+        }
+      } catch { /* 개별 종목 실패 무시 */ }
+      await new Promise(r => setTimeout(r, 100));
+    }
+
+    if (!rtStop) {
+      const now = new Date().toLocaleTimeString('ko-KR');
+      const marketTag = isMarketOpen() ? ' 🟢장중' : ' ⚫장외';
+      setRtStatus(`마지막 업데이트: ${now}${marketTag}`);
+      renderSignals();
+      renderAllStocks();
+      renderPortfolio();
+    }
+  } catch (e) {
+    setRtStatus(`오류: ${e.message}`);
+  }
+}
+
+async function saveAndStartLive() {
+  const key = (document.getElementById('rt-key').value || '').trim();
+  const sec = (document.getElementById('rt-sec').value || '').trim();
+  if (!key || !sec) { alert('App Key와 Secret을 입력하세요'); return; }
+  rtAppKey = key;
+  rtAppSecret = sec;
+  rtToken = null; // 키 변경 시 토큰 재발급
+  localStorage.setItem('rt_appkey', key);
+  localStorage.setItem('rt_secret', sec);
+
+  rtStop = false;
+  rtPrices = {};
+  document.getElementById('rt-start-btn').style.display = 'none';
+  document.getElementById('rt-stop-btn').style.display = 'inline-block';
+  document.getElementById('live-badge').style.display = 'inline';
+
+  await pollLivePrices();
+  if (!rtStop) {
+    rtInterval = setInterval(pollLivePrices, RT_INTERVAL);
+  }
+}
+
+function stopLive() {
+  rtStop = true;
+  if (rtInterval) { clearInterval(rtInterval); rtInterval = null; }
+  document.getElementById('rt-start-btn').style.display = 'inline-block';
+  document.getElementById('rt-stop-btn').style.display = 'none';
+  document.getElementById('live-badge').style.display = 'none';
+  setRtStatus('실시간 중단됨');
+}
+
+function loadRtKeys() {
+  const key = localStorage.getItem('rt_appkey') || '';
+  const sec = localStorage.getItem('rt_secret') || '';
+  const keyEl = document.getElementById('rt-key');
+  const secEl = document.getElementById('rt-sec');
+  if (keyEl && key) keyEl.value = key;
+  if (secEl && sec) secEl.value = sec;
+  if (key && sec) { rtAppKey = key; rtAppSecret = sec; }
+}
 
 // ── Auth ─────────────────────────────────────────────────────────────────────
 let pinBuffer = '';
@@ -328,7 +473,7 @@ async function init() {
   renderSignals();
   renderHistory();
   renderPortfolio();
-  // 미설정 시 PIN 안내
+  loadRtKeys();
   if(!localStorage.getItem('pin_set'))
     document.getElementById('pin-hint').textContent='※ 처음 사용: PIN을 입력하면 자동 설정됩니다';
 }
@@ -361,13 +506,17 @@ function renderSignals() {
     return;
   }
   el.innerHTML=sigs.map(s=>{
+    const rt = rtPrices[s.code];
+    const price = rt ? rt.price : s.price;
+    const changePct = rt ? rt.changePct : s.change_pct;
+    const liveTag = rt ? '<span style="font-size:10px;background:#00cc6633;color:#00cc66;padding:1px 6px;border-radius:8px;margin-left:6px">● LIVE</span>' : '';
     const borderColor=s.score>=65?'var(--gn)':s.score>=55?'var(--or)':'var(--rd)';
     return `<div class="card" style="border-left-color:${borderColor}">
       <div class="card-head">
-        <div><span class="card-name">${s.name}</span><span class="card-code">${s.code}</span></div>
+        <div><span class="card-name">${s.name}</span><span class="card-code">${s.code}</span>${liveTag}</div>
         <span class="score-pill ${scoreClass(s.score)}">${s.score}점</span>
       </div>
-      <div class="price-row"><span class="price">${Number(s.price).toLocaleString()}원</span>${changeHtml(s.change_pct)}</div>
+      <div class="price-row"><span class="price">${Number(price).toLocaleString()}원</span>${changeHtml(changePct)}</div>
       <div class="prediction">${s.prediction||''}</div>
       <div class="zones">
         <div class="zone zone-buy"><div class="zone-label">🟢 매수구간</div><div class="zone-val">${pf(s.buy_zone_min)} ~ ${pf(s.buy_zone_max)}</div></div>
@@ -412,6 +561,9 @@ function renderAllStocks() {
   }
 
   el.innerHTML = list.map(s => {
+    const rt = rtPrices[s.code];
+    const price = rt ? rt.price : s.price;
+    const changePct = rt ? rt.changePct : s.change_pct;
     const bc = s.is_signal
       ? (s.score>=65?'var(--gn)':s.score>=55?'var(--or)':'var(--rd)')
       : 'var(--bd)';
@@ -421,6 +573,7 @@ function renderAllStocks() {
     const rsiVal = parseFloat(s.rsi||'50');
     const rsiColor = rsiVal<35?'var(--gn)':rsiVal>65?'var(--rd)':'var(--tx)';
     const sigBell = s.is_signal ? ' <span style="color:var(--pu);font-size:11px">🔔</span>' : '';
+    const liveTag = rt ? ' <span style="font-size:9px;color:#00cc66">●</span>' : '';
     return `<div class="all-item" style="border-left-color:${bc}">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
         <div style="display:flex;align-items:center;gap:6px;min-width:0">
@@ -428,12 +581,12 @@ function renderAllStocks() {
           <div style="min-width:0">
             <span style="font-weight:700;font-size:14px">${s.name}</span>
             <span style="color:var(--tx2);font-size:11px;margin-left:4px">${s.code}</span>
-            ${mktBadge}${sigBell}
+            ${mktBadge}${sigBell}${liveTag}
           </div>
         </div>
         <div style="text-align:right;flex-shrink:0">
-          <div style="font-size:13px;font-weight:700">${Number(s.price).toLocaleString()}원</div>
-          <div style="font-size:12px">${changeHtml(s.change_pct)}</div>
+          <div style="font-size:13px;font-weight:700">${Number(price).toLocaleString()}원</div>
+          <div style="font-size:12px">${changeHtml(changePct)}</div>
         </div>
       </div>
       <div style="display:flex;gap:12px;margin-top:6px;font-size:11px;flex-wrap:wrap">
@@ -477,8 +630,9 @@ function savePf(){ localStorage.setItem('pf_holdings', JSON.stringify(portfolio)
 
 function getPriceMap(){
   const m={};
-  (results.signals||[]).forEach(s=>{ m[s.code]=s.price; });
-  if(serverPortfolio) serverPortfolio.holdings.forEach(h=>{ if(!m[h.code]) m[h.code]=h.current_price; });
+  (results.signals||[]).forEach(s=>{ m[s.code] = rtPrices[s.code]?.price ?? s.price; });
+  (allStocks||[]).forEach(s=>{ if(!m[s.code]) m[s.code] = rtPrices[s.code]?.price ?? s.price; });
+  if(serverPortfolio) serverPortfolio.holdings.forEach(h=>{ if(!m[h.code]) m[h.code] = rtPrices[h.code]?.price ?? h.current_price; });
   return m;
 }
 

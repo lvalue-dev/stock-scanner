@@ -1,6 +1,7 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 
 const API_BASE = "https://openapi.koreainvestment.com:9443";
+const RT_INTERVAL = 30000; // 30초마다 현재가 갱신
 
 const STOCKS = [
   { code: "005930", name: "삼성전자" },
@@ -123,6 +124,14 @@ function check3CandleRise(candles) {
 }
 
 const RSI_THRESHOLD = 40;
+
+function isMarketOpen() {
+  const now = new Date();
+  const kst = new Date(now.getTime() + 9 * 3600 * 1000);
+  const day = kst.getUTCDay();
+  const t = kst.getUTCHours() * 100 + kst.getUTCMinutes();
+  return day >= 1 && day <= 5 && t >= 900 && t < 1531;
+}
 
 function analyzeStock(priceData) {
   const raw = priceData?.output2;
@@ -328,7 +337,17 @@ export default function StockScanner() {
   const [results, setResults] = useState([]);
   const [logs, setLogs] = useState([]);
   const [errMsg, setErrMsg] = useState("");
+
+  // 실시간 시세 상태
+  const [rtPrices, setRtPrices] = useState({});   // { code: { price, change, changePct, sign } }
+  const [rtRunning, setRtRunning] = useState(false);
+  const [rtLoading, setRtLoading] = useState(false);
+  const [rtLastUpdate, setRtLastUpdate] = useState(null);
+  const [rtErr, setRtErr] = useState("");
   const stopRef = useRef(false);
+  const tokenCache = useRef({ value: null, expiry: 0 });
+  const rtIntervalRef = useRef(null);
+  const rtStopRef = useRef(false);
 
   const addLog = useCallback((msg) => {
     const t = new Date().toLocaleTimeString("ko-KR");
@@ -344,6 +363,10 @@ export default function StockScanner() {
   };
 
   const getToken = async () => {
+    const now = Date.now();
+    if (tokenCache.current.value && now < tokenCache.current.expiry) {
+      return tokenCache.current.value;
+    }
     const res = await fetch(`${API_BASE}/oauth2/tokenP`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -356,7 +379,31 @@ export default function StockScanner() {
     if (!res.ok) throw new Error(`토큰 HTTP ${res.status}`);
     const d = await res.json();
     if (!d.access_token) throw new Error("토큰 없음: " + JSON.stringify(d));
+    tokenCache.current = { value: d.access_token, expiry: now + 23 * 3600 * 1000 };
     return d.access_token;
+  };
+
+  const fetchCurrentPrice = async (token, code) => {
+    const p = new URLSearchParams({
+      fid_cond_mrkt_div_code: "J",
+      fid_input_iscd: code,
+    });
+    const res = await fetch(
+      `${API_BASE}/uapi/domestic-stock/v1/quotations/inquire-price?${p}`,
+      {
+        headers: {
+          authorization: `Bearer ${token}`,
+          appkey: appKey,
+          appsecret: appSecret,
+          tr_id: "FHKST01010100",
+          custtype: "P",
+        },
+      }
+    );
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    if (data.rt_cd !== "0") throw new Error(data.msg1 || data.msg_cd || "오류");
+    return data.output;
   };
 
   const fetchDailyPrice = async (token, code) => {
@@ -458,6 +505,74 @@ export default function StockScanner() {
     }
   };
 
+  // ── 실시간 시세 ────────────────────────────────────────────────────────────
+
+  const startRealtime = async () => {
+    if (!appKey || !appSecret) {
+      setErrMsg("설정 탭에서 App Key와 Secret을 입력하세요.");
+      setTab("settings");
+      return;
+    }
+    saveSettings();
+    rtStopRef.current = false;
+    setRtRunning(true);
+    setRtPrices({});
+    setRtErr("");
+
+    const poll = async () => {
+      if (rtStopRef.current) return;
+      setRtLoading(true);
+      try {
+        const token = await getToken();
+        const updates = {};
+        for (const stock of STOCKS) {
+          if (rtStopRef.current) break;
+          try {
+            const out = await fetchCurrentPrice(token, stock.code);
+            updates[stock.code] = {
+              price: parseInt(out.stck_prpr),
+              change: parseInt(out.prdy_vrss),
+              changePct: parseFloat(out.prdy_ctrt),
+              sign: out.prdy_vrss_sign, // 1:상한 2:상승 3:보합 4:하한 5:하락
+            };
+          } catch { /* 개별 종목 실패 시 건너뜀 */ }
+          await new Promise((r) => setTimeout(r, 100));
+        }
+        if (!rtStopRef.current) {
+          setRtPrices(updates);
+          setRtLastUpdate(new Date().toLocaleTimeString("ko-KR"));
+          setRtErr("");
+        }
+      } catch (e) {
+        setRtErr(e.message);
+      } finally {
+        setRtLoading(false);
+      }
+    };
+
+    await poll();
+    if (!rtStopRef.current) {
+      rtIntervalRef.current = setInterval(poll, RT_INTERVAL);
+    }
+  };
+
+  const stopRealtime = () => {
+    rtStopRef.current = true;
+    setRtRunning(false);
+    if (rtIntervalRef.current) {
+      clearInterval(rtIntervalRef.current);
+      rtIntervalRef.current = null;
+    }
+    setRtLoading(false);
+  };
+
+  // 탭 이탈 또는 언마운트 시 인터벌 정리
+  useEffect(() => {
+    return () => {
+      if (rtIntervalRef.current) clearInterval(rtIntervalRef.current);
+    };
+  }, []);
+
   return (
     <div style={S.wrap}>
       {/* Header */}
@@ -471,10 +586,14 @@ export default function StockScanner() {
         {[
           ["scanner", "스캔"],
           ["results", `결과(${results.length})`],
+          ["realtime", rtRunning ? "실시간●" : "실시간"],
           ["settings", "설정"],
           ["log", "로그"],
         ].map(([id, label]) => (
-          <button key={id} style={S.tab(tab === id)} onClick={() => setTab(id)}>
+          <button key={id} style={{
+            ...S.tab(tab === id),
+            ...(id === "realtime" && rtRunning ? { color: "#00cc66", borderBottomColor: "#00cc66" } : {}),
+          }} onClick={() => setTab(id)}>
             {label}
           </button>
         ))}
@@ -545,6 +664,76 @@ export default function StockScanner() {
                   </div>
                 </div>
               ))
+            )}
+          </div>
+        )}
+
+        {/* ── 실시간 탭 ── */}
+        {tab === "realtime" && (
+          <div>
+            {/* 상태 바 */}
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+              <div style={{ fontSize: 12, fontWeight: 600, color: isMarketOpen() ? "#00cc66" : "#666" }}>
+                {isMarketOpen() ? "🟢 장중" : "⚫ 장외"}
+              </div>
+              <div style={{ fontSize: 11, color: "#555" }}>
+                {rtLoading ? "⏳ 조회 중..." : rtLastUpdate ? `⏱ ${rtLastUpdate} 업데이트` : ""}
+              </div>
+            </div>
+
+            {rtErr && <div style={S.err}>⚠️ {rtErr}</div>}
+
+            {/* 시작/중단 버튼 */}
+            {rtRunning ? (
+              <button style={S.btn("stop")} onClick={stopRealtime}>⏹ 실시간 중단</button>
+            ) : (
+              <button style={S.btn("start")} onClick={startRealtime}>▶ 실시간 시작</button>
+            )}
+
+            {!rtRunning && Object.keys(rtPrices).length === 0 && (
+              <div style={{ ...S.info, textAlign: "center", marginTop: 32 }}>
+                실시간 시작을 누르면<br />
+                50종목 현재가를 {RT_INTERVAL / 1000}초마다 자동 갱신합니다
+              </div>
+            )}
+
+            {/* 가격 목록 — 등락률 내림차순 */}
+            {Object.keys(rtPrices).length > 0 && (
+              <div style={{ marginTop: 14 }}>
+                {[...STOCKS]
+                  .sort((a, b) => (rtPrices[b.code]?.changePct ?? 0) - (rtPrices[a.code]?.changePct ?? 0))
+                  .map((stock) => {
+                    const rt = rtPrices[stock.code];
+                    if (!rt) return null;
+                    const up = rt.changePct > 0;
+                    const dn = rt.changePct < 0;
+                    const clr = up ? "#cc4444" : dn ? "#4488ff" : "#888";
+                    const arrow = up ? "▲" : dn ? "▼" : "—";
+                    return (
+                      <div key={stock.code} style={{
+                        display: "flex", justifyContent: "space-between", alignItems: "center",
+                        padding: "9px 12px", marginBottom: 4, borderRadius: 8,
+                        background: "#14143a", borderLeft: `3px solid ${clr}`,
+                      }}>
+                        <div>
+                          <div style={{ fontWeight: 600, fontSize: 13 }}>{stock.name}</div>
+                          <div style={{ color: "#555", fontSize: 10 }}>{stock.code}</div>
+                        </div>
+                        <div style={{ textAlign: "right" }}>
+                          <div style={{ fontSize: 15, fontWeight: 700, color: "#00ff88" }}>
+                            {rt.price.toLocaleString()}원
+                          </div>
+                          <div style={{ fontSize: 11, color: clr }}>
+                            {arrow}{Math.abs(rt.changePct).toFixed(2)}%
+                            <span style={{ color: "#555", marginLeft: 4 }}>
+                              ({rt.change >= 0 ? "+" : ""}{rt.change.toLocaleString()})
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+              </div>
             )}
           </div>
         )}
