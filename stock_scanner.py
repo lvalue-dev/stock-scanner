@@ -451,10 +451,8 @@ def append_signals_log(hits: list, now: datetime.datetime) -> None:
 
 def fetch_market_ranking(token: str, market: str, rank_type: str) -> list:
     """등락률 순위 조회 (rank_type: 'up'=상승, 'dn'=하락)
-    market: 'J'=KOSPI, 'Q'=KOSDAQ
+    market: 'J'=KOSPI, 'K'=KOSDAQ
     """
-    # KOSDAQ은 별도 스크린 코드 사용
-    scr_code = "261" if market == "Q" else "211"
     headers = {
         "Authorization": f"Bearer {token}",
         "appkey": APP_KEY, "appsecret": APP_SECRET,
@@ -462,17 +460,20 @@ def fetch_market_ranking(token: str, market: str, rank_type: str) -> list:
     }
     params = {
         "fid_rsfl_rate2": "", "fid_cond_mrkt_div_code": market,
-        "fid_cond_scr_div_code": scr_code, "fid_input_iscd": "0000",
+        "fid_cond_scr_div_code": "20171", "fid_input_iscd": "0000",
         "fid_rank_sort_cls_code": "0" if rank_type == "up" else "1",
-        "fid_input_cnt_1": "0", "fid_prc_cls_code": "1",
+        "fid_input_cnt_1": "0", "fid_prc_cls_code": "0",
         "fid_input_price_1": "", "fid_input_price_2": "",
-        "fid_vol_cnt": "", "fid_trgt_cls_code": "0",
-        "fid_trgt_exls_cls_code": "0", "fid_div_cls_code": "0",
+        "fid_vol_cnt": "", "fid_trgt_cls_code": "111111111",
+        "fid_trgt_exls_cls_code": "000000", "fid_div_cls_code": "0",
         "fid_rsfl_rate1": "",
     }
     try:
         r = requests.get(f"{API_BASE}/uapi/domestic-stock/v1/ranking/fluctuation",
                          headers=headers, params=params, timeout=10)
+        if not r.text.strip():
+            print(f"  ⚠️  등락률순위({market}/{rank_type}) 빈 응답 HTTP {r.status_code}")
+            return []
         d = r.json()
         if d.get("rt_cd") != "0":
             print(f"  ⚠️  등락률순위({market}/{rank_type}) rt_cd={d.get('rt_cd')} msg={d.get('msg1')}")
@@ -486,16 +487,16 @@ def fetch_market_ranking(token: str, market: str, rank_type: str) -> list:
 
 
 def fetch_volume_ranking(token: str, market: str) -> list:
-    """거래량 순위 조회"""
-    # KOSDAQ은 별도 스크린 코드 사용
-    scr_code = "20172" if market == "Q" else "20171"
+    """거래량 순위 조회
+    market: 'J'=KOSPI, 'K'=KOSDAQ
+    """
     headers = {
         "Authorization": f"Bearer {token}",
         "appkey": APP_KEY, "appsecret": APP_SECRET,
         "tr_id": "FHPST01710000", "custtype": "P",
     }
     params = {
-        "fid_cond_mrkt_div_code": market, "fid_cond_scr_div_code": scr_code,
+        "fid_cond_mrkt_div_code": market, "fid_cond_scr_div_code": "20171",
         "fid_input_iscd": "0000", "fid_rank_sort_cls_code": "0",
         "fid_input_cnt_1": "0", "fid_prc_cls_code": "0",
         "fid_input_price_1": "", "fid_input_price_2": "",
@@ -506,6 +507,9 @@ def fetch_volume_ranking(token: str, market: str) -> list:
     try:
         r = requests.get(f"{API_BASE}/uapi/domestic-stock/v1/ranking/volume",
                          headers=headers, params=params, timeout=10)
+        if not r.text.strip():
+            print(f"  ⚠️  거래량순위({market}) 빈 응답 HTTP {r.status_code}")
+            return []
         d = r.json()
         if d.get("rt_cd") != "0":
             print(f"  ⚠️  거래량순위({market}) rt_cd={d.get('rt_cd')} msg={d.get('msg1')}")
@@ -529,9 +533,9 @@ def save_market_ranking_json(token: str, now: datetime.datetime) -> None:
             "vol": fetch_volume_ranking(token, "J"),
         },
         "kosdaq": {
-            "up":  fetch_market_ranking(token, "Q", "up"),
-            "dn":  fetch_market_ranking(token, "Q", "dn"),
-            "vol": fetch_volume_ranking(token, "Q"),
+            "up":  fetch_market_ranking(token, "K", "up"),
+            "dn":  fetch_market_ranking(token, "K", "dn"),
+            "vol": fetch_volume_ranking(token, "K"),
         },
     }
     with open("docs/data/market_ranking.json", "w", encoding="utf-8") as f:
