@@ -1,5 +1,5 @@
 {
-  "scan_time": "2026-04-30 08:12",
+  "scan_time": "2026-05-01 02:36",
   "total_scanned": 50,
   "signal_count": 48,
   "signals": [
@@ -50,6 +50,52 @@
       "downside_pct": 18.1
     },
     {
+      "code": "105560",
+      "name": "KB금융",
+      "price": 160500.0,
+      "change_pct": -0.06,
+      "rsi": "58.7",
+      "score": 78,
+      "prediction": "강한 매수 신호 🟢",
+      "signals": [
+        "이평선정배열",
+        "단기MA상향돌파",
+        "거래량급증(1.7배)"
+      ],
+      "macd_value": 2306,
+      "macd_hist": 42,
+      "macd_golden": false,
+      "boll_upper": 166212,
+      "boll_lower": 147318,
+      "boll_pos_pct": 70,
+      "boll_width": 12.1,
+      "ma5": 158940,
+      "ma20": 156765,
+      "ma60": 153840,
+      "ma120": null,
+      "alignment": "정배열",
+      "stoch_k": 47.8,
+      "stoch_d": 44.8,
+      "vol_ratio": 1.66,
+      "vol_surge": true,
+      "support": [
+        157400,
+        145300
+      ],
+      "resistance": [
+        162300,
+        168800
+      ],
+      "buy_zone_min": 155826,
+      "buy_zone_max": 157549,
+      "sell_zone_min": 160677,
+      "sell_zone_max": 166212,
+      "stop_loss": 142394,
+      "target_price": 166212,
+      "upside_pct": 3.6,
+      "downside_pct": 11.3
+    },
+    {
       "code": "005930",
       "name": "삼성전자",
       "price": 220500.0,
@@ -75,7 +121,7 @@
       "alignment": "정배열",
       "stoch_k": 70.1,
       "stoch_d": 78.3,
-      "vol_ratio": 0.89,
+      "vol_ratio": 0.96,
       "vol_surge": false,
       "support": [
         172200,
@@ -117,7 +163,7 @@
       "alignment": "정배열",
       "stoch_k": 65.4,
       "stoch_d": 73.9,
-      "vol_ratio": 1.04,
+      "vol_ratio": 1.05,
       "vol_surge": false,
       "support": [
         400000,
@@ -136,51 +182,6 @@
       "downside_pct": 19.1
     },
     {
-      "code": "105560",
-      "name": "KB금융",
-      "price": 160500.0,
-      "change_pct": -0.06,
-      "rsi": "58.7",
-      "score": 73,
-      "prediction": "매수 고려 📈",
-      "signals": [
-        "이평선정배열",
-        "단기MA상향돌파"
-      ],
-      "macd_value": 2306,
-      "macd_hist": 42,
-      "macd_golden": false,
-      "boll_upper": 166212,
-      "boll_lower": 147318,
-      "boll_pos_pct": 70,
-      "boll_width": 12.1,
-      "ma5": 158940,
-      "ma20": 156765,
-      "ma60": 153840,
-      "ma120": null,
-      "alignment": "정배열",
-      "stoch_k": 47.8,
-      "stoch_d": 44.8,
-      "vol_ratio": 1.43,
-      "vol_surge": false,
-      "support": [
-        157400,
-        145300
-      ],
-      "resistance": [
-        162300,
-        168800
-      ],
-      "buy_zone_min": 155826,
-      "buy_zone_max": 157549,
-      "sell_zone_min": 160677,
-      "sell_zone_max": 166212,
-      "stop_loss": 142394,
-      "target_price": 166212,
-      "upside_pct": 3.6,
-      "downside_pct": 11.3
-    },
-    {
       "code": "055550",
       "name": "신한지주",
       "price": 99900.0,
@@ -191,7 +192,7 @@
       "signals": [
         "이평선정배열",
         "단기MA상향돌파",
-        "거래량급증(1.5배)"
+        "거래량급증(1.7배)"
       ],
       "macd_value": 1728,
       "macd_hist": -33,
@@ -207,7 +208,7 @@
       "alignment": "정배열",
       "stoch_k": 70.6,
       "stoch_d": 71.2,
-      "vol_ratio": 1.54,
+      "vol_ratio": 1.68,
       "vol_surge": true,
       "support": [
         98600,
@@ -252,7 +253,7 @@
       "alignment": "정배열",
       "stoch_k": 33.3,
       "stoch_d": 52.0,
-      "vol_ratio": 1.21,
+      "vol_ratio": 1.22,
       "vol_surge": false,
       "support": [
         289500,
@@ -270,6 +271,51 @@
       "target_price": 327907,
       "upside_pct": 9.9,
       "downside_pct": 11.2
+    },
+    {
+      "code": "032830",
+      "name": "삼성생명",
+      "price": 249500.0,
+      "change_pct": -0.99,
+      "rsi": "56.1",
+      "score": 73,
+      "prediction": "매수 고려 📈",
+      "signals": [
+        "이평선정배열",
+        "단기MA상향돌파",
+        "거래량급증(4.4배)"
+      ],
+      "macd_value": 7571,
+      "macd_hist": -774,
+      "macd_golden": false,
+      "boll_upper": 267787,
+      "boll_lower": 220513,
+      "boll_pos_pct": 61,
+      "boll_width": 19.4,
+      "ma5": 249600,
+      "ma20": 244150,
+      "ma60": 224167,
+      "ma120": null,
+      "alignment": "정배열",
+      "stoch_k": 58.7,
+      "stoch_d": 66.0,
+      "vol_ratio": 4.38,
+      "vol_surge": true,
+      "support": [
+        210500,
+        197500
+      ],
+      "resistance": [
+        258000
+      ],
+      "buy_zone_min": 208395,
+      "buy_zone_max": 245371,
+      "sell_zone_min": 255420,
+      "sell_zone_max": 267787,
+      "stop_loss": 193550,
+      "target_price": 267787,
+      "upside_pct": 7.3,
+      "downside_pct": 22.4
     },
     {
       "code": "003670",
@@ -428,7 +474,7 @@
       "alignment": "혼조",
       "stoch_k": 2.5,
       "stoch_d": 23.3,
-      "vol_ratio": 1.43,
+      "vol_ratio": 1.44,
       "vol_surge": false,
       "support": [
         56200,
@@ -518,7 +564,7 @@
       "alignment": "정배열",
       "stoch_k": 29.2,
       "stoch_d": 42.6,
-      "vol_ratio": 1.1,
+      "vol_ratio": 1.11,
       "vol_surge": false,
       "support": [
         76400,
@@ -535,50 +581,6 @@
       "target_price": 106315,
       "upside_pct": 11.8,
       "downside_pct": 22.7
-    },
-    {
-      "code": "032830",
-      "name": "삼성생명",
-      "price": 249500.0,
-      "change_pct": -0.99,
-      "rsi": "56.1",
-      "score": 68,
-      "prediction": "매수 고려 📈",
-      "signals": [
-        "이평선정배열",
-        "단기MA상향돌파"
-      ],
-      "macd_value": 7571,
-      "macd_hist": -774,
-      "macd_golden": false,
-      "boll_upper": 267787,
-      "boll_lower": 220513,
-      "boll_pos_pct": 61,
-      "boll_width": 19.4,
-      "ma5": 249600,
-      "ma20": 244150,
-      "ma60": 224167,
-      "ma120": null,
-      "alignment": "정배열",
-      "stoch_k": 58.7,
-      "stoch_d": 66.0,
-      "vol_ratio": 0.84,
-      "vol_surge": false,
-      "support": [
-        210500,
-        197500
-      ],
-      "resistance": [
-        258000
-      ],
-      "buy_zone_min": 208395,
-      "buy_zone_max": 245371,
-      "sell_zone_min": 255420,
-      "sell_zone_max": 267787,
-      "stop_loss": 193550,
-      "target_price": 267787,
-      "upside_pct": 7.3,
-      "downside_pct": 22.4
     },
     {
       "code": "018260",
@@ -770,7 +772,7 @@
       "prediction": "매수 고려 📈",
       "signals": [
         "스토캐스틱과매도(20)",
-        "거래량급증(2.5배)"
+        "거래량급증(2.7배)"
       ],
       "macd_value": 6672,
       "macd_hist": -3565,
@@ -786,7 +788,7 @@
       "alignment": "혼조",
       "stoch_k": 19.8,
       "stoch_d": 31.7,
-      "vol_ratio": 2.47,
+      "vol_ratio": 2.74,
       "vol_surge": true,
       "support": [
         1422000,
@@ -962,7 +964,7 @@
       "alignment": "혼조",
       "stoch_k": 32.2,
       "stoch_d": 43.8,
-      "vol_ratio": 1.02,
+      "vol_ratio": 1.03,
       "vol_surge": false,
       "support": [
         39900
@@ -1185,7 +1187,7 @@
       "alignment": "정배열",
       "stoch_k": 70.8,
       "stoch_d": 68.7,
-      "vol_ratio": 3.99,
+      "vol_ratio": 4.0,
       "vol_surge": true,
       "support": [
         113100,
@@ -1274,7 +1276,7 @@
       "alignment": "정배열",
       "stoch_k": 87.3,
       "stoch_d": 89.5,
-      "vol_ratio": 0.86,
+      "vol_ratio": 0.89,
       "vol_surge": false,
       "support": [
         836000,
@@ -1360,7 +1362,7 @@
       "alignment": "혼조",
       "stoch_k": 16.0,
       "stoch_d": 6.8,
-      "vol_ratio": 0.62,
+      "vol_ratio": 0.88,
       "vol_surge": false,
       "support": [
         59100,
@@ -1497,7 +1499,7 @@
       "alignment": "정배열",
       "stoch_k": 89.2,
       "stoch_d": 88.7,
-      "vol_ratio": 1.24,
+      "vol_ratio": 1.25,
       "vol_surge": false,
       "support": [
         119500,
@@ -1542,7 +1544,7 @@
       "alignment": "정배열",
       "stoch_k": 86.2,
       "stoch_d": 88.2,
-      "vol_ratio": 1.46,
+      "vol_ratio": 1.47,
       "vol_surge": false,
       "support": [
         329000,
@@ -1584,7 +1586,7 @@
       "alignment": "역배열",
       "stoch_k": 15.6,
       "stoch_d": 28.6,
-      "vol_ratio": 1.05,
+      "vol_ratio": 1.19,
       "vol_surge": false,
       "support": [
         440500
@@ -1810,7 +1812,7 @@
       "alignment": "정배열",
       "stoch_k": 86.1,
       "stoch_d": 92.9,
-      "vol_ratio": 1.26,
+      "vol_ratio": 1.27,
       "vol_surge": false,
       "support": [
         407500,
@@ -2033,7 +2035,7 @@
       "alignment": "정배열",
       "stoch_k": 89.2,
       "stoch_d": 94.7,
-      "vol_ratio": 0.86,
+      "vol_ratio": 0.87,
       "vol_surge": false,
       "support": [
         376500,
@@ -2077,7 +2079,7 @@
       "alignment": "정배열",
       "stoch_k": 88.8,
       "stoch_d": 93.3,
-      "vol_ratio": 0.94,
+      "vol_ratio": 0.95,
       "vol_surge": false,
       "support": [
         261500,
