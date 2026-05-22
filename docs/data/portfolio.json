@@ -1,18 +1,18 @@
 {
-  "updated": "2026-05-21 06:49",
+  "updated": "2026-05-22 02:49",
   "total_invested": 700000,
-  "total_current": 2995000,
-  "total_pnl": 2295000,
-  "total_pnl_pct": 327.86,
+  "total_current": 2940000,
+  "total_pnl": 2240000,
+  "total_pnl_pct": 320.0,
   "holdings": [
     {
       "code": "005930",
       "name": "삼성전자",
       "qty": 10,
       "avg_price": 70000,
-      "current_price": 299500.0,
-      "pnl": 2295000,
-      "pnl_pct": 327.86
+      "current_price": 294000.0,
+      "pnl": 2240000,
+      "pnl_pct": 320.0
     }
   ]
 }
