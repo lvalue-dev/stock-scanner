@@ -1,5 +1,5 @@
 {
-  "scan_time": "2026-05-22 06:45",
+  "scan_time": "2026-05-25 02:54",
   "total_scanned": 50,
   "signal_count": 42,
   "signals": [
@@ -435,7 +435,7 @@
       "alignment": "정배열",
       "stoch_k": 89.5,
       "stoch_d": 86.8,
-      "vol_ratio": 0.57,
+      "vol_ratio": 0.58,
       "vol_surge": false,
       "support": [
         172200,
@@ -478,7 +478,7 @@
       "alignment": "정배열",
       "stoch_k": 91.8,
       "stoch_d": 83.0,
-      "vol_ratio": 0.56,
+      "vol_ratio": 0.59,
       "vol_surge": false,
       "support": [
         836000,
@@ -1146,7 +1146,7 @@
       "alignment": "혼조",
       "stoch_k": 72.0,
       "stoch_d": 44.2,
-      "vol_ratio": 0.86,
+      "vol_ratio": 0.87,
       "vol_surge": false,
       "support": [
         157400,
@@ -1720,7 +1720,7 @@
       "alignment": "역배열",
       "stoch_k": 27.0,
       "stoch_d": 17.4,
-      "vol_ratio": 0.49,
+      "vol_ratio": 0.52,
       "vol_surge": false,
       "support": [
         1422000,
