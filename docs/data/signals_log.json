@@ -1,819 +1,6 @@
 [
   {
     "date": "2026-05-14",
-    "time": "06:19",
-    "code": "000720",
-    "name": "현대건설",
-    "score": 35,
-    "prediction": "매도 신호 🔴",
-    "signals": [
-      "MACD데드크로스"
-    ],
-    "price": 167900.0,
-    "change_pct": 4.48,
-    "target_price": 181858,
-    "upside_pct": 8.3
-  },
-  {
-    "date": "2026-05-14",
-    "time": "06:19",
-    "code": "011200",
-    "name": "HMM",
-    "score": 35,
-    "prediction": "매도 신호 🔴",
-    "signals": [
-      "MACD데드크로스",
-      "볼린저하단근접",
-      "이평선역배열"
-    ],
-    "price": 19910.0,
-    "change_pct": 0.4,
-    "target_price": 21597,
-    "upside_pct": 8.5
-  },
-  {
-    "date": "2026-05-14",
-    "time": "06:19",
-    "code": "161390",
-    "name": "한국타이어앤테크놀로지",
-    "score": 35,
-    "prediction": "매도 신호 🔴",
-    "signals": [
-      "이평선역배열"
-    ],
-    "price": 61700.0,
-    "change_pct": 4.4,
-    "target_price": 64651,
-    "upside_pct": 4.8
-  },
-  {
-    "date": "2026-05-14",
-    "time": "06:19",
-    "code": "180640",
-    "name": "한진칼",
-    "score": 35,
-    "prediction": "매도 신호 🔴",
-    "signals": [
-      "MACD골든크로스",
-      "볼린저상단돌파",
-      "이평선역배열",
-      "스토캐스틱과매수(84)",
-      "거래량급증(2.4배)"
-    ],
-    "price": 120000.0,
-    "change_pct": 6.95,
-    "target_price": 119867,
-    "upside_pct": -0.1
-  },
-  {
-    "date": "2026-05-14",
-    "time": "06:19",
-    "code": "000810",
-    "name": "삼성화재",
-    "score": 33,
-    "prediction": "매도 신호 🔴",
-    "signals": [
-      "볼린저상단돌파",
-      "단기MA상향돌파",
-      "스토캐스틱과매수(99)"
-    ],
-    "price": 533000.0,
-    "change_pct": 7.03,
-    "target_price": 519929,
-    "upside_pct": -2.5
-  },
-  {
-    "date": "2026-05-14",
-    "time": "06:19",
-    "code": "035720",
-    "name": "카카오",
-    "score": 30,
-    "prediction": "매도 신호 🔴",
-    "signals": [
-      "MACD데드크로스",
-      "이평선역배열",
-      "거래량급증(1.8배)"
-    ],
-    "price": 45850.0,
-    "change_pct": 6.75,
-    "target_price": 51510,
-    "upside_pct": 12.3
-  },
-  {
-    "date": "2026-05-14",
-    "time": "06:19",
-    "code": "035420",
-    "name": "NAVER",
-    "score": 30,
-    "prediction": "매도 신호 🔴",
-    "signals": [
-      "MACD데드크로스",
-      "이평선역배열",
-      "거래량급증(1.6배)"
-    ],
-    "price": 212500.0,
-    "change_pct": 5.46,
-    "target_price": 222247,
-    "upside_pct": 4.6
-  },
-  {
-    "date": "2026-05-14",
-    "time": "06:19",
-    "code": "000100",
-    "name": "유한양행",
-    "score": 30,
-    "prediction": "매도 신호 🔴",
-    "signals": [
-      "MACD데드크로스",
-      "이평선역배열",
-      "거래량급증(1.6배)"
-    ],
-    "price": 89400.0,
-    "change_pct": 5.55,
-    "target_price": 100929,
-    "upside_pct": 12.9
-  },
-  {
-    "date": "2026-05-14",
-    "time": "06:19",
-    "code": "068270",
-    "name": "셀트리온",
-    "score": 29,
-    "prediction": "매도 신호 🔴",
-    "signals": [
-      "MACD데드크로스",
-      "이평선역배열"
-    ],
-    "price": 195000.0,
-    "change_pct": 2.36,
-    "target_price": 212573,
-    "upside_pct": 9.0
-  },
-  {
-    "date": "2026-05-14",
-    "time": "06:19",
-    "code": "030200",
-    "name": "KT",
-    "score": 25,
-    "prediction": "매도 신호 🔴",
-    "signals": [
-      "MACD데드크로스",
-      "이평선역배열"
-    ],
-    "price": 59600.0,
-    "change_pct": 0.51,
-    "target_price": 64483,
-    "upside_pct": 8.2
-  },
-  {
-    "date": "2026-05-14",
-    "time": "06:19",
-    "code": "090430",
-    "name": "아모레퍼시픽",
-    "score": 25,
-    "prediction": "매도 신호 🔴",
-    "signals": [
-      "MACD데드크로스",
-      "이평선역배열"
-    ],
-    "price": 127400.0,
-    "change_pct": 5.73,
-    "target_price": 147551,
-    "upside_pct": 15.8
-  },
-  {
-    "date": "2026-05-14",
-    "time": "09:13",
-    "code": "267250",
-    "name": "HD현대",
-    "score": 83,
-    "prediction": "강한 매수 신호 🟢",
-    "signals": [
-      "이평선정배열",
-      "단기MA상향돌파",
-      "스토캐스틱과매도(16)",
-      "거래량급증(1.5배)"
-    ],
-    "price": 279000.0,
-    "change_pct": -6.53,
-    "target_price": 314469,
-    "upside_pct": 12.7
-  },
-  {
-    "date": "2026-05-14",
-    "time": "09:13",
-    "code": "003670",
-    "name": "포스코퓨처엠",
-    "score": 78,
-    "prediction": "강한 매수 신호 🟢",
-    "signals": [
-      "이평선정배열",
-      "단기MA상향돌파",
-      "스토캐스틱과매도(18)"
-    ],
-    "price": 250500.0,
-    "change_pct": -0.4,
-    "target_price": 297213,
-    "upside_pct": 18.6
-  },
-  {
-    "date": "2026-05-14",
-    "time": "09:13",
-    "code": "009540",
-    "name": "HD한국조선해양",
-    "score": 78,
-    "prediction": "강한 매수 신호 🟢",
-    "signals": [
-      "이평선정배열",
-      "단기MA상향돌파",
-      "스토캐스틱과매도(0)"
-    ],
-    "price": 437500.0,
-    "change_pct": -4.99,
-    "target_price": 499166,
-    "upside_pct": 14.1
-  },
-  {
-    "date": "2026-05-14",
-    "time": "09:13",
-    "code": "004020",
-    "name": "현대제철",
-    "score": 76,
-    "prediction": "매수 고려 📈",
-    "signals": [
-      "MACD골든크로스",
-      "볼린저상단돌파",
-      "이평선정배열",
-      "단기MA상향돌파",
-      "거래량급증(1.6배)"
-    ],
-    "price": 45950.0,
-    "change_pct": 5.75,
-    "target_price": 46182,
-    "upside_pct": 0.5
-  },
-  {
-    "date": "2026-05-14",
-    "time": "09:13",
-    "code": "005490",
-    "name": "POSCO홀딩스",
-    "score": 73,
-    "prediction": "매수 고려 📈",
-    "signals": [
-      "이평선정배열",
-      "단기MA상향돌파"
-    ],
-    "price": 486500.0,
-    "change_pct": 1.67,
-    "target_price": 553746,
-    "upside_pct": 13.8
-  },
-  {
-    "date": "2026-05-14",
-    "time": "09:13",
-    "code": "329180",
-    "name": "HD현대중공업",
-    "score": 73,
-    "prediction": "매수 고려 📈",
-    "signals": [
-      "이평선정배열",
-      "단기MA상향돌파"
-    ],
-    "price": 671000.0,
-    "change_pct": -8.46,
-    "target_price": 784726,
-    "upside_pct": 16.9
-  },
-  {
-    "date": "2026-05-14",
-    "time": "09:13",
-    "code": "086280",
-    "name": "현대글로비스",
-    "score": 73,
-    "prediction": "매수 고려 📈",
-    "signals": [
-      "이평선정배열",
-      "단기MA상향돌파",
-      "거래량급증(2.0배)"
-    ],
-    "price": 263000.0,
-    "change_pct": -7.39,
-    "target_price": 270505,
-    "upside_pct": 2.9
-  },
-  {
-    "date": "2026-05-14",
-    "time": "09:13",
-    "code": "018260",
-    "name": "삼성SDS",
-    "score": 73,
-    "prediction": "매수 고려 📈",
-    "signals": [
-      "이평선정배열",
-      "단기MA상향돌파"
-    ],
-    "price": 182900.0,
-    "change_pct": 2.01,
-    "target_price": 188335,
-    "upside_pct": 3.0
-  },
-  {
-    "date": "2026-05-14",
-    "time": "09:13",
-    "code": "015760",
-    "name": "한국전력",
-    "score": 69,
-    "prediction": "매수 고려 📈",
-    "signals": [
-      "RSI강과매도(30)",
-      "MACD데드크로스",
-      "볼린저하단돌파",
-      "이평선역배열",
-      "스토캐스틱과매도(11)",
-      "거래량급증(1.8배)"
-    ],
-    "price": 39650.0,
-    "change_pct": -2.7,
-    "target_price": 48194,
-    "upside_pct": 21.5
-  },
-  {
-    "date": "2026-05-14",
-    "time": "09:13",
-    "code": "051910",
-    "name": "LG화학",
-    "score": 68,
-    "prediction": "매수 고려 📈",
-    "signals": [
-      "이평선정배열",
-      "단기MA상향돌파"
-    ],
-    "price": 392500.0,
-    "change_pct": 1.29,
-    "target_price": 439969,
-    "upside_pct": 12.1
-  },
-  {
-    "date": "2026-05-14",
-    "time": "09:13",
-    "code": "006400",
-    "name": "삼성SDI",
-    "score": 68,
-    "prediction": "매수 고려 📈",
-    "signals": [
-      "이평선정배열",
-      "단기MA상향돌파"
-    ],
-    "price": 636000.0,
-    "change_pct": 0.32,
-    "target_price": 777351,
-    "upside_pct": 22.2
-  },
-  {
-    "date": "2026-05-14",
-    "time": "09:13",
-    "code": "017670",
-    "name": "SK텔레콤",
-    "score": 68,
-    "prediction": "매수 고려 📈",
-    "signals": [
-      "이평선정배열",
-      "단기MA상향돌파"
-    ],
-    "price": 102700.0,
-    "change_pct": -2.93,
-    "target_price": 104503,
-    "upside_pct": 1.8
-  },
-  {
-    "date": "2026-05-14",
-    "time": "09:13",
-    "code": "034730",
-    "name": "SK",
-    "score": 65,
-    "prediction": "매수 고려 📈",
-    "signals": [
-      "이평선정배열",
-      "단기MA상향돌파"
-    ],
-    "price": 541000.0,
-    "change_pct": -1.64,
-    "target_price": 598005,
-    "upside_pct": 10.5
-  },
-  {
-    "date": "2026-05-14",
-    "time": "09:13",
-    "code": "086790",
-    "name": "하나금융지주",
-    "score": 62,
-    "prediction": "상승 가능성 (관망) 👀",
-    "signals": [
-      "이평선정배열"
-    ],
-    "price": 126500.0,
-    "change_pct": 3.43,
-    "target_price": 129504,
-    "upside_pct": 2.4
-  },
-  {
-    "date": "2026-05-14",
-    "time": "09:13",
-    "code": "028260",
-    "name": "삼성물산",
-    "score": 60,
-    "prediction": "상승 가능성 (관망) 👀",
-    "signals": [
-      "이평선정배열",
-      "단기MA상향돌파"
-    ],
-    "price": 442000.0,
-    "change_pct": 3.15,
-    "target_price": 462009,
-    "upside_pct": 4.5
-  },
-  {
-    "date": "2026-05-14",
-    "time": "09:13",
-    "code": "033780",
-    "name": "KT&G",
-    "score": 60,
-    "prediction": "상승 가능성 (관망) 👀",
-    "signals": [
-      "MACD골든크로스",
-      "볼린저상단돌파",
-      "이평선정배열",
-      "단기MA상향돌파",
-      "스토캐스틱과매수(97)",
-      "거래량급증(2.5배)"
-    ],
-    "price": 189000.0,
-    "change_pct": 6.18,
-    "target_price": 185730,
-    "upside_pct": -1.7
-  },
-  {
-    "date": "2026-05-14",
-    "time": "09:13",
-    "code": "096770",
-    "name": "SK이노베이션",
-    "score": 59,
-    "prediction": "상승 가능성 (관망) 👀",
-    "signals": [
-      "스토캐스틱과매도(9)"
-    ],
-    "price": 126700.0,
-    "change_pct": -2.31,
-    "target_price": 148851,
-    "upside_pct": 17.5
-  },
-  {
-    "date": "2026-05-14",
-    "time": "09:13",
-    "code": "042700",
-    "name": "한미반도체",
-    "score": 57,
-    "prediction": "중립 ➡️",
-    "signals": [
-      "이평선정배열",
-      "단기MA상향돌파",
-      "스토캐스틱과매수(88)"
-    ],
-    "price": 409500.0,
-    "change_pct": 2.25,
-    "target_price": 440528,
-    "upside_pct": 7.6
-  },
-  {
-    "date": "2026-05-14",
-    "time": "09:13",
-    "code": "003550",
-    "name": "LG",
-    "score": 50,
-    "prediction": "중립 ➡️",
-    "signals": [
-      "볼린저상단돌파",
-      "이평선정배열",
-      "단기MA상향돌파",
-      "스토캐스틱과매수(94)",
-      "거래량급증(1.6배)"
-    ],
-    "price": 117000.0,
-    "change_pct": 7.64,
-    "target_price": 113599,
-    "upside_pct": -2.9
-  },
-  {
-    "date": "2026-05-14",
-    "time": "09:13",
-    "code": "139480",
-    "name": "이마트",
-    "score": 50,
-    "prediction": "중립 ➡️",
-    "signals": [
-      "볼린저상단돌파",
-      "이평선정배열",
-      "단기MA상향돌파",
-      "스토캐스틱과매수(100)",
-      "거래량급증(2.6배)"
-    ],
-    "price": 118700.0,
-    "change_pct": 11.98,
-    "target_price": 115230,
-    "upside_pct": -2.9
-  },
-  {
-    "date": "2026-05-14",
-    "time": "09:13",
-    "code": "010130",
-    "name": "고려아연",
-    "score": 45,
-    "prediction": "매도 고려 📉",
-    "signals": [
-      "MACD데드크로스",
-      "볼린저하단근접",
-      "이평선역배열",
-      "스토캐스틱과매도(12)"
-    ],
-    "price": 1511000.0,
-    "change_pct": 0.67,
-    "target_price": 1758132,
-    "upside_pct": 16.4
-  },
-  {
-    "date": "2026-05-14",
-    "time": "09:13",
-    "code": "047050",
-    "name": "포스코인터내셔널",
-    "score": 45,
-    "prediction": "매도 고려 📉",
-    "signals": [
-      "MACD데드크로스",
-      "스토캐스틱과매도(17)"
-    ],
-    "price": 74600.0,
-    "change_pct": 2.9,
-    "target_price": 88526,
-    "upside_pct": 18.7
-  },
-  {
-    "date": "2026-05-14",
-    "time": "09:13",
-    "code": "014680",
-    "name": "한화솔루션",
-    "score": 45,
-    "prediction": "매도 고려 📉",
-    "signals": [
-      "볼린저상단돌파",
-      "이평선정배열",
-      "단기MA상향돌파",
-      "스토캐스틱과매수(97)"
-    ],
-    "price": 336000.0,
-    "change_pct": 0.0,
-    "target_price": 324240,
-    "upside_pct": -3.5
-  },
-  {
-    "date": "2026-05-14",
-    "time": "09:13",
-    "code": "009150",
-    "name": "삼성전기",
-    "score": 42,
-    "prediction": "매도 고려 📉",
-    "signals": [
-      "RSI과매수(84)",
-      "이평선정배열",
-      "단기MA상향돌파",
-      "스토캐스틱과매수(88)"
-    ],
-    "price": 1024000.0,
-    "change_pct": -0.49,
-    "target_price": 1061754,
-    "upside_pct": 3.7
-  },
-  {
-    "date": "2026-05-14",
-    "time": "09:13",
-    "code": "011070",
-    "name": "LG이노텍",
-    "score": 42,
-    "prediction": "매도 고려 📉",
-    "signals": [
-      "RSI과매수(87)",
-      "이평선정배열",
-      "단기MA상향돌파",
-      "스토캐스틱과매수(94)"
-    ],
-    "price": 760000.0,
-    "change_pct": 0.93,
-    "target_price": 792440,
-    "upside_pct": 4.3
-  },
-  {
-    "date": "2026-05-14",
-    "time": "09:13",
-    "code": "012330",
-    "name": "현대모비스",
-    "score": 40,
-    "prediction": "매도 고려 📉",
-    "signals": [
-      "RSI과매수(82)",
-      "볼린저상단돌파",
-      "이평선정배열",
-      "단기MA상향돌파",
-      "스토캐스틱과매수(86)",
-      "거래량급증(2.1배)"
-    ],
-    "price": 650000.0,
-    "change_pct": 0.15,
-    "target_price": 612529,
-    "upside_pct": -5.8
-  },
-  {
-    "date": "2026-05-14",
-    "time": "09:13",
-    "code": "066570",
-    "name": "LG전자",
-    "score": 40,
-    "prediction": "매도 고려 📉",
-    "signals": [
-      "RSI과매수(87)",
-      "볼린저상단돌파",
-      "이평선정배열",
-      "단기MA상향돌파",
-      "스토캐스틱과매수(92)",
-      "거래량급증(1.8배)"
-    ],
-    "price": 217000.0,
-    "change_pct": 13.38,
-    "target_price": 195292,
-    "upside_pct": -10.0
-  },
-  {
-    "date": "2026-05-14",
-    "time": "09:13",
-    "code": "000270",
-    "name": "기아",
-    "score": 38,
-    "prediction": "매도 고려 📉",
-    "signals": [
-      "볼린저상단돌파",
-      "단기MA상향돌파",
-      "스토캐스틱과매수(84)",
-      "거래량급증(1.5배)"
-    ],
-    "price": 178100.0,
-    "change_pct": -0.78,
-    "target_price": 176813,
-    "upside_pct": -0.7
-  },
-  {
-    "date": "2026-05-14",
-    "time": "09:13",
-    "code": "207940",
-    "name": "삼성바이오로직스",
-    "score": 37,
-    "prediction": "매도 고려 📉",
-    "signals": [
-      "RSI과매도(39)",
-      "MACD데드크로스",
-      "이평선역배열"
-    ],
-    "price": 1449000.0,
-    "change_pct": 2.77,
-    "target_price": 1633963,
-    "upside_pct": 12.8
-  },
-  {
-    "date": "2026-05-14",
-    "time": "09:13",
-    "code": "316140",
-    "name": "우리금융지주",
-    "score": 37,
-    "prediction": "매도 고려 📉",
-    "signals": [
-      "RSI과매도(39)",
-      "MACD데드크로스",
-      "이평선역배열"
-    ],
-    "price": 31800.0,
-    "change_pct": 2.09,
-    "target_price": 36672,
-    "upside_pct": 15.3
-  },
-  {
-    "date": "2026-05-14",
-    "time": "09:13",
-    "code": "005930",
-    "name": "삼성전자",
-    "score": 35,
-    "prediction": "매도 신호 🔴",
-    "signals": [
-      "RSI과매수(78)",
-      "볼린저상단돌파",
-      "이평선정배열",
-      "단기MA상향돌파",
-      "스토캐스틱과매수(96)"
-    ],
-    "price": 296000.0,
-    "change_pct": 4.23,
-    "target_price": 298238,
-    "upside_pct": 0.8
-  },
-  {
-    "date": "2026-05-14",
-    "time": "09:13",
-    "code": "000660",
-    "name": "SK하이닉스",
-    "score": 35,
-    "prediction": "매도 신호 🔴",
-    "signals": [
-      "RSI과매수(86)",
-      "볼린저상단돌파",
-      "이평선정배열",
-      "단기MA상향돌파",
-      "스토캐스틱과매수(97)"
-    ],
-    "price": 1970000.0,
-    "change_pct": -0.3,
-    "target_price": 2012873,
-    "upside_pct": 2.2
-  },
-  {
-    "date": "2026-05-14",
-    "time": "09:13",
-    "code": "005380",
-    "name": "현대차",
-    "score": 35,
-    "prediction": "매도 신호 🔴",
-    "signals": [
-      "RSI과매수(79)",
-      "볼린저상단돌파",
-      "이평선정배열",
-      "단기MA상향돌파",
-      "스토캐스틱과매수(92)"
-    ],
-    "price": 712000.0,
-    "change_pct": 0.28,
-    "target_price": 690239,
-    "upside_pct": -3.1
-  },
-  {
-    "date": "2026-05-14",
-    "time": "09:13",
-    "code": "032830",
-    "name": "삼성생명",
-    "score": 35,
-    "prediction": "매도 신호 🔴",
-    "signals": [
-      "RSI과매수(80)",
-      "볼린저상단돌파",
-      "이평선정배열",
-      "단기MA상향돌파",
-      "스토캐스틱과매수(95)"
-    ],
-    "price": 330000.0,
-    "change_pct": 7.84,
-    "target_price": 321761,
-    "upside_pct": -2.5
-  },
-  {
-    "date": "2026-05-14",
-    "time": "09:13",
-    "code": "024110",
-    "name": "기업은행",
-    "score": 35,
-    "prediction": "매도 신호 🔴",
-    "signals": [
-      "MACD데드크로스",
-      "볼린저하단근접",
-      "이평선역배열"
-    ],
-    "price": 21300.0,
-    "change_pct": 2.4,
-    "target_price": 23194,
-    "upside_pct": 8.9
-  },
-  {
-    "date": "2026-05-14",
-    "time": "09:13",
-    "code": "011200",
-    "name": "HMM",
-    "score": 35,
-    "prediction": "매도 신호 🔴",
-    "signals": [
-      "MACD데드크로스",
-      "볼린저하단근접",
-      "이평선역배열"
-    ],
-    "price": 20100.0,
-    "change_pct": 1.36,
-    "target_price": 21576,
-    "upside_pct": 7.3
-  },
-  {
-    "date": "2026-05-14",
     "time": "09:13",
     "code": "161390",
     "name": "한국타이어앤테크놀로지",
@@ -16879,5 +16066,804 @@
     "change_pct": -0.66,
     "target_price": 21126,
     "upside_pct": 7.7
+  },
+  {
+    "date": "2026-05-29",
+    "time": "02:43",
+    "code": "000270",
+    "name": "기아",
+    "score": 83,
+    "prediction": "강한 매수 신호 🟢",
+    "signals": [
+      "MACD골든크로스",
+      "이평선정배열",
+      "단기MA상향돌파"
+    ],
+    "price": 169300.0,
+    "change_pct": 3.04,
+    "target_price": 180169,
+    "upside_pct": 6.4
+  },
+  {
+    "date": "2026-05-29",
+    "time": "02:43",
+    "code": "000810",
+    "name": "삼성화재",
+    "score": 73,
+    "prediction": "매수 고려 📈",
+    "signals": [
+      "이평선정배열",
+      "단기MA상향돌파"
+    ],
+    "price": 559000.0,
+    "change_pct": -0.18,
+    "target_price": 604540,
+    "upside_pct": 8.1
+  },
+  {
+    "date": "2026-05-29",
+    "time": "02:43",
+    "code": "329180",
+    "name": "HD현대중공업",
+    "score": 73,
+    "prediction": "매수 고려 📈",
+    "signals": [
+      "이평선정배열",
+      "단기MA상향돌파"
+    ],
+    "price": 697000.0,
+    "change_pct": -0.99,
+    "target_price": 755421,
+    "upside_pct": 8.4
+  },
+  {
+    "date": "2026-05-29",
+    "time": "02:43",
+    "code": "028260",
+    "name": "삼성물산",
+    "score": 68,
+    "prediction": "매수 고려 📈",
+    "signals": [
+      "이평선정배열",
+      "단기MA상향돌파"
+    ],
+    "price": 427000.0,
+    "change_pct": 6.88,
+    "target_price": 480205,
+    "upside_pct": 12.5
+  },
+  {
+    "date": "2026-05-29",
+    "time": "02:43",
+    "code": "017670",
+    "name": "SK텔레콤",
+    "score": 68,
+    "prediction": "매수 고려 📈",
+    "signals": [
+      "이평선정배열",
+      "단기MA상향돌파"
+    ],
+    "price": 100100.0,
+    "change_pct": 3.3,
+    "target_price": 106098,
+    "upside_pct": 6.0
+  },
+  {
+    "date": "2026-05-29",
+    "time": "02:43",
+    "code": "033780",
+    "name": "KT&G",
+    "score": 68,
+    "prediction": "매수 고려 📈",
+    "signals": [
+      "이평선정배열",
+      "단기MA상향돌파"
+    ],
+    "price": 181600.0,
+    "change_pct": -1.14,
+    "target_price": 187189,
+    "upside_pct": 3.1
+  },
+  {
+    "date": "2026-05-29",
+    "time": "02:43",
+    "code": "161390",
+    "name": "한국타이어앤테크놀로지",
+    "score": 68,
+    "prediction": "매수 고려 📈",
+    "signals": [
+      "이평선정배열",
+      "단기MA상향돌파"
+    ],
+    "price": 64300.0,
+    "change_pct": 2.06,
+    "target_price": 64945,
+    "upside_pct": 1.0
+  },
+  {
+    "date": "2026-05-29",
+    "time": "02:43",
+    "code": "003550",
+    "name": "LG",
+    "score": 66,
+    "prediction": "매수 고려 📈",
+    "signals": [
+      "볼린저상단돌파",
+      "이평선정배열",
+      "단기MA상향돌파",
+      "거래량급증(2.8배)"
+    ],
+    "price": 129800.0,
+    "change_pct": 12.09,
+    "target_price": 129968,
+    "upside_pct": 0.1
+  },
+  {
+    "date": "2026-05-29",
+    "time": "02:43",
+    "code": "005930",
+    "name": "삼성전자",
+    "score": 65,
+    "prediction": "매수 고려 📈",
+    "signals": [
+      "이평선정배열",
+      "단기MA상향돌파"
+    ],
+    "price": 310500.0,
+    "change_pct": 3.67,
+    "target_price": 326631,
+    "upside_pct": 5.2
+  },
+  {
+    "date": "2026-05-29",
+    "time": "02:43",
+    "code": "005380",
+    "name": "현대차",
+    "score": 65,
+    "prediction": "매수 고려 📈",
+    "signals": [
+      "이평선정배열",
+      "단기MA상향돌파"
+    ],
+    "price": 718000.0,
+    "change_pct": 6.06,
+    "target_price": 756492,
+    "upside_pct": 5.4
+  },
+  {
+    "date": "2026-05-29",
+    "time": "02:43",
+    "code": "005490",
+    "name": "POSCO홀딩스",
+    "score": 65,
+    "prediction": "매수 고려 📈",
+    "signals": [
+      "볼린저하단근접",
+      "스토캐스틱과매도(7)"
+    ],
+    "price": 413000.0,
+    "change_pct": -1.67,
+    "target_price": 537667,
+    "upside_pct": 30.2
+  },
+  {
+    "date": "2026-05-29",
+    "time": "02:43",
+    "code": "180640",
+    "name": "한진칼",
+    "score": 65,
+    "prediction": "매수 고려 📈",
+    "signals": [
+      "MACD골든크로스"
+    ],
+    "price": 115600.0,
+    "change_pct": 6.54,
+    "target_price": 120834,
+    "upside_pct": 4.5
+  },
+  {
+    "date": "2026-05-29",
+    "time": "02:43",
+    "code": "042700",
+    "name": "한미반도체",
+    "score": 63,
+    "prediction": "상승 가능성 (관망) 👀",
+    "signals": [
+      "RSI과매도(40)",
+      "MACD데드크로스",
+      "볼린저하단근접",
+      "스토캐스틱과매도(3)"
+    ],
+    "price": 282000.0,
+    "change_pct": -3.59,
+    "target_price": 434712,
+    "upside_pct": 54.2
+  },
+  {
+    "date": "2026-05-29",
+    "time": "02:43",
+    "code": "139480",
+    "name": "이마트",
+    "score": 63,
+    "prediction": "상승 가능성 (관망) 👀",
+    "signals": [
+      "RSI과매도(38)",
+      "MACD데드크로스",
+      "볼린저하단근접",
+      "스토캐스틱과매도(6)"
+    ],
+    "price": 86300.0,
+    "change_pct": -0.92,
+    "target_price": 119829,
+    "upside_pct": 38.9
+  },
+  {
+    "date": "2026-05-29",
+    "time": "02:43",
+    "code": "006400",
+    "name": "삼성SDI",
+    "score": 60,
+    "prediction": "상승 가능성 (관망) 👀",
+    "signals": [
+      "이평선정배열",
+      "단기MA상향돌파",
+      "스토캐스틱과매수(100)"
+    ],
+    "price": 694000.0,
+    "change_pct": 2.66,
+    "target_price": 734059,
+    "upside_pct": 5.8
+  },
+  {
+    "date": "2026-05-29",
+    "time": "02:43",
+    "code": "316140",
+    "name": "우리금융지주",
+    "score": 59,
+    "prediction": "상승 가능성 (관망) 👀",
+    "signals": [
+      "RSI강과매도(34)",
+      "MACD데드크로스",
+      "볼린저하단근접",
+      "이평선역배열",
+      "스토캐스틱과매도(11)"
+    ],
+    "price": 29600.0,
+    "change_pct": -1.5,
+    "target_price": 34023,
+    "upside_pct": 14.9
+  },
+  {
+    "date": "2026-05-29",
+    "time": "02:43",
+    "code": "090430",
+    "name": "아모레퍼시픽",
+    "score": 59,
+    "prediction": "상승 가능성 (관망) 👀",
+    "signals": [
+      "RSI강과매도(35)",
+      "MACD데드크로스",
+      "볼린저하단근접",
+      "이평선역배열",
+      "스토캐스틱과매도(7)"
+    ],
+    "price": 113200.0,
+    "change_pct": -1.91,
+    "target_price": 139141,
+    "upside_pct": 22.9
+  },
+  {
+    "date": "2026-05-29",
+    "time": "02:43",
+    "code": "047050",
+    "name": "포스코인터내셔널",
+    "score": 59,
+    "prediction": "상승 가능성 (관망) 👀",
+    "signals": [
+      "RSI강과매도(31)",
+      "MACD데드크로스",
+      "볼린저하단근접",
+      "이평선역배열",
+      "스토캐스틱과매도(6)"
+    ],
+    "price": 63000.0,
+    "change_pct": -1.72,
+    "target_price": 88564,
+    "upside_pct": 40.6
+  },
+  {
+    "date": "2026-05-29",
+    "time": "02:43",
+    "code": "024110",
+    "name": "기업은행",
+    "score": 59,
+    "prediction": "상승 가능성 (관망) 👀",
+    "signals": [
+      "RSI강과매도(34)",
+      "MACD데드크로스",
+      "볼린저하단근접",
+      "이평선역배열",
+      "스토캐스틱과매도(8)"
+    ],
+    "price": 20150.0,
+    "change_pct": -1.47,
+    "target_price": 22571,
+    "upside_pct": 12.0
+  },
+  {
+    "date": "2026-05-29",
+    "time": "02:43",
+    "code": "011200",
+    "name": "HMM",
+    "score": 58,
+    "prediction": "상승 가능성 (관망) 👀",
+    "signals": [
+      "RSI과매도(38)",
+      "MACD데드크로스",
+      "볼린저하단돌파",
+      "이평선역배열",
+      "스토캐스틱과매도(7)"
+    ],
+    "price": 19290.0,
+    "change_pct": -1.63,
+    "target_price": 21109,
+    "upside_pct": 9.4
+  },
+  {
+    "date": "2026-05-29",
+    "time": "02:43",
+    "code": "096770",
+    "name": "SK이노베이션",
+    "score": 57,
+    "prediction": "중립 ➡️",
+    "signals": [
+      "RSI과매도(40)",
+      "MACD데드크로스",
+      "스토캐스틱과매도(17)"
+    ],
+    "price": 116400.0,
+    "change_pct": -0.51,
+    "target_price": 150827,
+    "upside_pct": 29.6
+  },
+  {
+    "date": "2026-05-29",
+    "time": "02:43",
+    "code": "012330",
+    "name": "현대모비스",
+    "score": 52,
+    "prediction": "중립 ➡️",
+    "signals": [
+      "이평선정배열",
+      "단기MA상향돌파",
+      "스토캐스틱과매수(90)"
+    ],
+    "price": 752000.0,
+    "change_pct": 9.62,
+    "target_price": 773059,
+    "upside_pct": 2.8
+  },
+  {
+    "date": "2026-05-29",
+    "time": "02:43",
+    "code": "032830",
+    "name": "삼성생명",
+    "score": 52,
+    "prediction": "중립 ➡️",
+    "signals": [
+      "이평선정배열",
+      "단기MA상향돌파",
+      "스토캐스틱과매수(98)"
+    ],
+    "price": 371500.0,
+    "change_pct": 3.92,
+    "target_price": 384221,
+    "upside_pct": 3.4
+  },
+  {
+    "date": "2026-05-29",
+    "time": "02:43",
+    "code": "015760",
+    "name": "한국전력",
+    "score": 50,
+    "prediction": "중립 ➡️",
+    "signals": [
+      "MACD골든크로스",
+      "이평선역배열"
+    ],
+    "price": 39550.0,
+    "change_pct": 1.28,
+    "target_price": 46091,
+    "upside_pct": 16.5
+  },
+  {
+    "date": "2026-05-29",
+    "time": "02:43",
+    "code": "066570",
+    "name": "LG전자",
+    "score": 50,
+    "prediction": "중립 ➡️",
+    "signals": [
+      "볼린저상단돌파",
+      "이평선정배열",
+      "단기MA상향돌파",
+      "스토캐스틱과매수(98)",
+      "거래량급증(1.5배)"
+    ],
+    "price": 286500.0,
+    "change_pct": 27.05,
+    "target_price": 280195,
+    "upside_pct": -2.2
+  },
+  {
+    "date": "2026-05-29",
+    "time": "02:43",
+    "code": "207940",
+    "name": "삼성바이오로직스",
+    "score": 49,
+    "prediction": "중립 ➡️",
+    "signals": [
+      "RSI강과매도(35)",
+      "MACD데드크로스",
+      "볼린저하단근접",
+      "이평선역배열"
+    ],
+    "price": 1348000.0,
+    "change_pct": -1.82,
+    "target_price": 1515477,
+    "upside_pct": 12.4
+  },
+  {
+    "date": "2026-05-29",
+    "time": "02:43",
+    "code": "086790",
+    "name": "하나금융지주",
+    "score": 49,
+    "prediction": "중립 ➡️",
+    "signals": [
+      "MACD데드크로스",
+      "스토캐스틱과매도(14)"
+    ],
+    "price": 115000.0,
+    "change_pct": -0.26,
+    "target_price": 131513,
+    "upside_pct": 14.4
+  },
+  {
+    "date": "2026-05-29",
+    "time": "02:43",
+    "code": "014680",
+    "name": "한화솔루션",
+    "score": 49,
+    "prediction": "중립 ➡️",
+    "signals": [
+      "MACD데드크로스",
+      "스토캐스틱과매도(12)"
+    ],
+    "price": 274000.0,
+    "change_pct": -2.49,
+    "target_price": 334394,
+    "upside_pct": 22.0
+  },
+  {
+    "date": "2026-05-29",
+    "time": "02:43",
+    "code": "035420",
+    "name": "NAVER",
+    "score": 48,
+    "prediction": "중립 ➡️",
+    "signals": [
+      "MACD골든크로스",
+      "볼린저상단돌파",
+      "단기MA상향돌파",
+      "스토캐스틱과매수(90)",
+      "거래량급증(4.0배)"
+    ],
+    "price": 242000.0,
+    "change_pct": 18.05,
+    "target_price": 227821,
+    "upside_pct": -5.9
+  },
+  {
+    "date": "2026-05-29",
+    "time": "02:43",
+    "code": "000100",
+    "name": "유한양행",
+    "score": 48,
+    "prediction": "중립 ➡️",
+    "signals": [
+      "RSI과매도(40)",
+      "이평선역배열"
+    ],
+    "price": 83300.0,
+    "change_pct": -0.36,
+    "target_price": 92490,
+    "upside_pct": 11.0
+  },
+  {
+    "date": "2026-05-29",
+    "time": "02:43",
+    "code": "010950",
+    "name": "S-Oil",
+    "score": 47,
+    "prediction": "중립 ➡️",
+    "signals": [
+      "RSI과매도(37)",
+      "MACD데드크로스",
+      "이평선역배열",
+      "스토캐스틱과매도(9)"
+    ],
+    "price": 104000.0,
+    "change_pct": -2.8,
+    "target_price": 131792,
+    "upside_pct": 26.7
+  },
+  {
+    "date": "2026-05-29",
+    "time": "02:43",
+    "code": "000660",
+    "name": "SK하이닉스",
+    "score": 42,
+    "prediction": "매도 고려 📉",
+    "signals": [
+      "RSI과매수(81)",
+      "이평선정배열",
+      "단기MA상향돌파",
+      "스토캐스틱과매수(89)"
+    ],
+    "price": 2304000.0,
+    "change_pct": 0.66,
+    "target_price": 2388147,
+    "upside_pct": 3.7
+  },
+  {
+    "date": "2026-05-29",
+    "time": "02:43",
+    "code": "034730",
+    "name": "SK",
+    "score": 42,
+    "prediction": "매도 고려 📉",
+    "signals": [
+      "RSI과매수(77)",
+      "이평선정배열",
+      "단기MA상향돌파",
+      "스토캐스틱과매수(83)"
+    ],
+    "price": 681000.0,
+    "change_pct": 2.56,
+    "target_price": 703728,
+    "upside_pct": 3.3
+  },
+  {
+    "date": "2026-05-29",
+    "time": "02:43",
+    "code": "011070",
+    "name": "LG이노텍",
+    "score": 40,
+    "prediction": "매도 고려 📉",
+    "signals": [
+      "RSI과매수(90)",
+      "볼린저상단돌파",
+      "이평선정배열",
+      "단기MA상향돌파",
+      "스토캐스틱과매수(95)",
+      "거래량급증(1.8배)"
+    ],
+    "price": 1368000.0,
+    "change_pct": 20.63,
+    "target_price": 1202567,
+    "upside_pct": -12.1
+  },
+  {
+    "date": "2026-05-29",
+    "time": "02:43",
+    "code": "018260",
+    "name": "삼성SDS",
+    "score": 40,
+    "prediction": "매도 고려 📉",
+    "signals": [
+      "RSI과매수(82)",
+      "볼린저상단돌파",
+      "이평선정배열",
+      "단기MA상향돌파",
+      "스토캐스틱과매수(95)",
+      "거래량급증(2.6배)"
+    ],
+    "price": 314000.0,
+    "change_pct": 26.36,
+    "target_price": 267229,
+    "upside_pct": -14.9
+  },
+  {
+    "date": "2026-05-29",
+    "time": "02:43",
+    "code": "105560",
+    "name": "KB금융",
+    "score": 39,
+    "prediction": "매도 고려 📉",
+    "signals": [
+      "MACD데드크로스"
+    ],
+    "price": 151200.0,
+    "change_pct": 1.0,
+    "target_price": 163383,
+    "upside_pct": 8.1
+  },
+  {
+    "date": "2026-05-29",
+    "time": "02:43",
+    "code": "055550",
+    "name": "신한지주",
+    "score": 39,
+    "prediction": "매도 고려 📉",
+    "signals": [
+      "MACD데드크로스"
+    ],
+    "price": 93400.0,
+    "change_pct": 0.65,
+    "target_price": 100539,
+    "upside_pct": 7.6
+  },
+  {
+    "date": "2026-05-29",
+    "time": "02:43",
+    "code": "004020",
+    "name": "현대제철",
+    "score": 39,
+    "prediction": "매도 고려 📉",
+    "signals": [
+      "MACD데드크로스"
+    ],
+    "price": 39450.0,
+    "change_pct": -0.13,
+    "target_price": 47012,
+    "upside_pct": 19.2
+  },
+  {
+    "date": "2026-05-29",
+    "time": "02:43",
+    "code": "030200",
+    "name": "KT",
+    "score": 37,
+    "prediction": "매도 고려 📉",
+    "signals": [
+      "RSI과매도(36)",
+      "MACD데드크로스",
+      "이평선역배열"
+    ],
+    "price": 54000.0,
+    "change_pct": 4.05,
+    "target_price": 63048,
+    "upside_pct": 16.8
+  },
+  {
+    "date": "2026-05-29",
+    "time": "02:43",
+    "code": "010130",
+    "name": "고려아연",
+    "score": 37,
+    "prediction": "매도 고려 📉",
+    "signals": [
+      "RSI과매도(39)",
+      "MACD데드크로스",
+      "이평선역배열"
+    ],
+    "price": 1378000.0,
+    "change_pct": 0.95,
+    "target_price": 1694393,
+    "upside_pct": 23.0
+  },
+  {
+    "date": "2026-05-29",
+    "time": "02:43",
+    "code": "000720",
+    "name": "현대건설",
+    "score": 37,
+    "prediction": "매도 고려 📉",
+    "signals": [
+      "RSI과매도(40)",
+      "MACD데드크로스",
+      "이평선역배열"
+    ],
+    "price": 140100.0,
+    "change_pct": -0.92,
+    "target_price": 175491,
+    "upside_pct": 25.3
+  },
+  {
+    "date": "2026-05-29",
+    "time": "02:43",
+    "code": "373220",
+    "name": "LG에너지솔루션",
+    "score": 35,
+    "prediction": "매도 신호 🔴",
+    "signals": [
+      "MACD데드크로스"
+    ],
+    "price": 455000.0,
+    "change_pct": 2.94,
+    "target_price": 503159,
+    "upside_pct": 10.6
+  },
+  {
+    "date": "2026-05-29",
+    "time": "02:43",
+    "code": "051910",
+    "name": "LG화학",
+    "score": 35,
+    "prediction": "매도 신호 🔴",
+    "signals": [
+      "MACD데드크로스"
+    ],
+    "price": 352000.0,
+    "change_pct": 2.18,
+    "target_price": 447451,
+    "upside_pct": 27.1
+  },
+  {
+    "date": "2026-05-29",
+    "time": "02:43",
+    "code": "009150",
+    "name": "삼성전기",
+    "score": 35,
+    "prediction": "매도 신호 🔴",
+    "signals": [
+      "RSI과매수(95)",
+      "볼린저상단돌파",
+      "이평선정배열",
+      "단기MA상향돌파",
+      "스토캐스틱과매수(97)"
+    ],
+    "price": 2154000.0,
+    "change_pct": 16.5,
+    "target_price": 1870097,
+    "upside_pct": -13.2
+  },
+  {
+    "date": "2026-05-29",
+    "time": "02:43",
+    "code": "003670",
+    "name": "포스코퓨처엠",
+    "score": 35,
+    "prediction": "매도 신호 🔴",
+    "signals": [
+      "MACD데드크로스"
+    ],
+    "price": 242500.0,
+    "change_pct": 1.89,
+    "target_price": 296305,
+    "upside_pct": 22.2
+  },
+  {
+    "date": "2026-05-29",
+    "time": "02:43",
+    "code": "009540",
+    "name": "HD한국조선해양",
+    "score": 35,
+    "prediction": "매도 신호 🔴",
+    "signals": [
+      "MACD데드크로스"
+    ],
+    "price": 415500.0,
+    "change_pct": 0.12,
+    "target_price": 489590,
+    "upside_pct": 17.8
+  },
+  {
+    "date": "2026-05-29",
+    "time": "02:43",
+    "code": "035720",
+    "name": "카카오",
+    "score": 30,
+    "prediction": "매도 신호 🔴",
+    "signals": [
+      "MACD데드크로스",
+      "이평선역배열",
+      "거래량급증(1.8배)"
+    ],
+    "price": 42350.0,
+    "change_pct": 5.61,
+    "target_price": 48657,
+    "upside_pct": 14.9
   }
 ]
