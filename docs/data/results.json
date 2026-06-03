@@ -1,5 +1,5 @@
 {
-  "scan_time": "2026-06-02 08:13",
+  "scan_time": "2026-06-03 03:35",
   "total_scanned": 50,
   "signal_count": 49,
   "signals": [
@@ -335,7 +335,7 @@
       "alignment": "정배열",
       "stoch_k": 47.4,
       "stoch_d": 53.9,
-      "vol_ratio": 1.12,
+      "vol_ratio": 1.13,
       "vol_surge": false,
       "support": [
         648000,
@@ -382,7 +382,7 @@
       "alignment": "역배열",
       "stoch_k": 14.3,
       "stoch_d": 31.4,
-      "vol_ratio": 0.84,
+      "vol_ratio": 0.89,
       "vol_surge": false,
       "support": [
         81300
@@ -517,7 +517,7 @@
       "alignment": "정배열",
       "stoch_k": 77.5,
       "stoch_d": 77.1,
-      "vol_ratio": 0.71,
+      "vol_ratio": 0.72,
       "vol_surge": false,
       "support": [
         503000,
@@ -1509,7 +1509,7 @@
       "alignment": "정배열",
       "stoch_k": 93.4,
       "stoch_d": 93.9,
-      "vol_ratio": 0.9,
+      "vol_ratio": 0.95,
       "vol_surge": false,
       "support": [
         1745000,
@@ -1771,7 +1771,7 @@
       "alignment": "역배열",
       "stoch_k": 22.2,
       "stoch_d": 16.2,
-      "vol_ratio": 0.87,
+      "vol_ratio": 0.99,
       "vol_surge": false,
       "support": [],
       "resistance": [
@@ -1816,7 +1816,7 @@
       "alignment": "정배열",
       "stoch_k": 91.2,
       "stoch_d": 91.8,
-      "vol_ratio": 1.21,
+      "vol_ratio": 1.26,
       "vol_surge": false,
       "support": [
         172200,
@@ -2121,7 +2121,7 @@
       "alignment": "역배열",
       "stoch_k": 30.4,
       "stoch_d": 23.0,
-      "vol_ratio": 1.15,
+      "vol_ratio": 1.19,
       "vol_surge": false,
       "support": [
         105400,
