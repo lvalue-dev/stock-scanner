@@ -1,5 +1,5 @@
 {
-  "scan_time": "2026-08-14 06:53",
+  "scan_time": "2026-08-17 00:55",
   "total_scanned": 50,
   "signal_count": 49,
   "signals": [
@@ -31,7 +31,7 @@
       "alignment": "정배열",
       "stoch_k": 89.5,
       "stoch_d": 75.7,
-      "vol_ratio": 0.8,
+      "vol_ratio": 0.81,
       "vol_surge": false,
       "support": [
         120400,
@@ -208,7 +208,7 @@
       "alignment": "정배열",
       "stoch_k": 74.3,
       "stoch_d": 72.9,
-      "vol_ratio": 0.57,
+      "vol_ratio": 0.6,
       "vol_surge": false,
       "support": [
         127700,
@@ -973,7 +973,7 @@
       "alignment": "혼조",
       "stoch_k": 97.5,
       "stoch_d": 83.0,
-      "vol_ratio": 0.8,
+      "vol_ratio": 0.81,
       "vol_surge": false,
       "support": [
         139600,
@@ -1137,7 +1137,7 @@
       "prediction": "중립 ➡️",
       "signals": [
         "이평선역배열",
-        "거래량급증(1.5배)"
+        "거래량급증(1.6배)"
       ],
       "macd_value": -251,
       "macd_hist": 76,
@@ -1153,7 +1153,7 @@
       "alignment": "역배열",
       "stoch_k": 58.3,
       "stoch_d": 43.5,
-      "vol_ratio": 1.51,
+      "vol_ratio": 1.56,
       "vol_surge": true,
       "support": [
         51900,
@@ -1292,7 +1292,7 @@
       "alignment": "혼조",
       "stoch_k": 98.8,
       "stoch_d": 93.5,
-      "vol_ratio": 0.72,
+      "vol_ratio": 0.73,
       "vol_surge": false,
       "support": [
         244000,
@@ -1972,7 +1972,7 @@
       "alignment": "역배열",
       "stoch_k": 72.8,
       "stoch_d": 67.8,
-      "vol_ratio": 0.72,
+      "vol_ratio": 0.88,
       "vol_surge": false,
       "support": [
         275500,
@@ -2018,7 +2018,7 @@
       "alignment": "역배열",
       "stoch_k": 50.0,
       "stoch_d": 53.4,
-      "vol_ratio": 1.57,
+      "vol_ratio": 1.64,
       "vol_surge": true,
       "support": [
         614000,
@@ -2108,7 +2108,7 @@
       "alignment": "역배열",
       "stoch_k": 84.5,
       "stoch_d": 61.6,
-      "vol_ratio": 0.75,
+      "vol_ratio": 0.79,
       "vol_surge": false,
       "support": [
         1322000,
