@@ -303,6 +303,11 @@ function setRtStatus(msg) {
   if (el) el.textContent = msg;
 }
 
+function isCorsRestrictedHost() {
+  const h = (location.hostname || '').toLowerCase();
+  return h.endsWith('github.io') || h.endsWith('githubusercontent.com');
+}
+
 async function getRtToken() {
   const now = Date.now();
   // 1) 메모리 캐시
@@ -380,7 +385,12 @@ async function pollLivePrices() {
       renderPortfolio();
     }
   } catch (e) {
-    setRtStatus(`오류: ${e.message}`);
+    const msg = (e && e.message) ? e.message : '알 수 없는 오류';
+    if (msg.toLowerCase().includes('failed to fetch')) {
+      setRtStatus('오류: API 호출 실패(Failed to fetch). 브라우저 CORS/네트워크 상태를 확인하세요.');
+    } else {
+      setRtStatus(`오류: ${msg}`);
+    }
   }
 }
 
@@ -402,13 +412,26 @@ async function saveAndStartLive() {
 
   rtStop = false;
   rtPrices = {};
+
+  if (isCorsRestrictedHost()) {
+    setRtStatus('오류: 현재 호스트에서는 한국투자 REST API가 CORS로 차단됩니다. 로컬 실행 또는 서버 프록시를 사용하세요.');
+    stopLive();
+    return;
+  }
+
   document.getElementById('rt-start-btn').style.display = 'none';
   document.getElementById('rt-stop-btn').style.display = 'inline-block';
   document.getElementById('live-badge').style.display = 'inline';
 
-  await pollLivePrices();
-  if (!rtStop) {
-    rtInterval = setInterval(pollLivePrices, RT_INTERVAL);
+  try {
+    await pollLivePrices();
+    if (!rtStop && rtToken) {
+      rtInterval = setInterval(pollLivePrices, RT_INTERVAL);
+    } else if (!rtToken) {
+      stopLive();
+    }
+  } catch {
+    stopLive();
   }
 }
 
