@@ -291,11 +291,38 @@ let rtPrices = {};      // { code: { price, change, changePct, sign } }
 let rtInterval = null;
 let rtStop = false;
 
-function isMarketOpen() {
+// 시세 시장 구분: UN = KRX+넥스트레이드(NXT) 통합 → 프리마켓(08:00~)·애프터마켓(~20:00) 체결 반영
+// NXT 미신청 계좌/비거래 종목은 rt_cd≠0 으로 오므로 KRX('J')로 폴백
+const MARKET_DIV = 'UN';
+const WS_TR_ID = 'H0UNCNT0';          // 통합 실시간 체결가 (KRX 전용은 H0STCNT0)
+const WS_TR_IDS = new Set(['H0UNCNT0', 'H0STCNT0', 'H0NXCNT0']);
+
+function kstNow() {
   const kst = new Date(Date.now() + 9 * 3600 * 1000);
-  const day = kst.getUTCDay();
-  const t = kst.getUTCHours() * 100 + kst.getUTCMinutes();
-  return day >= 1 && day <= 5 && t >= 900 && t < 1531;
+  return { day: kst.getUTCDay(), t: kst.getUTCHours() * 100 + kst.getUTCMinutes() };
+}
+
+// 장 구분 라벨 (KST): NXT 프리마켓 08:00~08:50, 정규장 09:00~15:30, NXT 애프터마켓 ~20:00
+function marketSession() {
+  const { day, t } = kstNow();
+  if (day < 1 || day > 5) return '장외';
+  if (t >= 800 && t < 850) return '프리마켓';
+  if (t >= 850 && t < 900) return '동시호가';
+  if (t >= 900 && t < 1530) return '정규장';
+  if (t >= 1530 && t < 1540) return '마감동시호가';
+  if (t >= 1540 && t < 2000) return '애프터마켓';
+  return '장외';
+}
+
+function marketTag() {
+  const s = marketSession();
+  const icon = { '정규장': '🟢', '프리마켓': '🟠', '애프터마켓': '🟣', '동시호가': '🟡', '마감동시호가': '🟡' }[s] || '⚫';
+  return ` ${icon}${s}`;
+}
+
+// 08:00~20:00 (프리마켓 ~ 애프터마켓) 사이면 시세가 움직이는 시간
+function isMarketOpen() {
+  return marketSession() !== '장외';
 }
 
 function setRtStatus(msg) {
@@ -345,19 +372,25 @@ async function pollLivePrices() {
     for (const code of codes) {
       if (rtStop) break;
       try {
-        const p = new URLSearchParams({ fid_cond_mrkt_div_code: 'J', fid_input_iscd: code });
-        const res = await fetch(`${KI_API}/uapi/domestic-stock/v1/quotations/inquire-price?${p}`, {
-          headers: {
-            authorization: `Bearer ${token}`,
-            appkey: rtAppKey,
-            appsecret: rtAppSecret,
-            tr_id: 'FHKST01010100',
-            custtype: 'P',
-          },
-        });
-        if (res.ok) {
-          const data = await res.json();
-          if (data.rt_cd === '0') {
+        const fetchPrice = async (mkt) => {
+          const p = new URLSearchParams({ fid_cond_mrkt_div_code: mkt, fid_input_iscd: code });
+          const res = await fetch(`${KI_API}/uapi/domestic-stock/v1/quotations/inquire-price?${p}`, {
+            headers: {
+              authorization: `Bearer ${token}`,
+              appkey: rtAppKey,
+              appsecret: rtAppSecret,
+              tr_id: 'FHKST01010100',
+              custtype: 'P',
+            },
+          });
+          return res.ok ? await res.json() : null;
+        };
+        let data = await fetchPrice(MARKET_DIV);
+        if ((!data || data.rt_cd !== '0' || !data.output?.stck_prpr) && MARKET_DIV !== 'J') {
+          data = await fetchPrice('J');   // 통합 조회 불가 종목은 KRX 로 폴백
+        }
+        {
+          if (data && data.rt_cd === '0') {
             const out = data.output;
             rtPrices[code] = {
               price: parseInt(out.stck_prpr),
@@ -373,8 +406,7 @@ async function pollLivePrices() {
 
     if (!rtStop) {
       const now = new Date().toLocaleTimeString('ko-KR');
-      const marketTag = isMarketOpen() ? ' 🟢장중' : ' ⚫장외';
-      setRtStatus(`마지막 업데이트: ${now}${marketTag}`);
+      setRtStatus(`마지막 업데이트: ${now}${marketTag()}`);
       renderSignals();
       renderAllStocks();
       renderPortfolio();
@@ -860,7 +892,7 @@ async function connectWebSocket() {
     wsConn._key = approvalKey;
 
     wsConn.onopen = () => {
-      setMktStatus('🟢 WebSocket 연결됨 — 실시간 체결 수신 중');
+      setMktStatus(`🟢 WebSocket 연결됨 — 실시간 체결 수신 중 (${marketSession()}, ${WS_TR_ID})`);
       watchlist.forEach(w => wsSubscribe(w.code));
     };
 
@@ -876,7 +908,7 @@ async function connectWebSocket() {
       }
       // pipe-delimited 실시간 데이터: {type}|{trId}|[{cnt}|]{data}
       const parts = raw.split('|');
-      if (parts.length < 3 || parts[1] !== 'H0STCNT0') return;
+      if (parts.length < 3 || !WS_TR_IDS.has(parts[1])) return;
       // cnt 필드가 있는 경우(parts[2]가 숫자)는 parts[3], 없으면 parts[2]
       const body = isNaN(parts[2]) ? parts[2] : (parts[3] || '');
       if (!body) return;
@@ -905,7 +937,7 @@ function wsSubscribe(code) {
   if (!wsConn || wsConn.readyState !== WebSocket.OPEN) return;
   wsConn.send(JSON.stringify({
     header: { approval_key: wsConn._key, custtype: 'P', tr_type: '1', 'content-type': 'utf-8' },
-    body: { input: { tr_id: 'H0STCNT0', tr_key: code } },
+    body: { input: { tr_id: WS_TR_ID, tr_key: code } },
   }));
 }
 
@@ -913,7 +945,7 @@ function wsUnsubscribe(code) {
   if (!wsConn || wsConn.readyState !== WebSocket.OPEN) return;
   wsConn.send(JSON.stringify({
     header: { approval_key: wsConn._key, custtype: 'P', tr_type: '2', 'content-type': 'utf-8' },
-    body: { input: { tr_id: 'H0STCNT0', tr_key: code } },
+    body: { input: { tr_id: WS_TR_ID, tr_key: code } },
   }));
 }
 
